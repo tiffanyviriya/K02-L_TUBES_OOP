@@ -11,7 +11,7 @@ import environment.Item;
 public class IngredientStorage extends Tile {
 
     GamePanel gp;
-    String ingredientName; // Contoh: "potato", "tomato", "lettuce"
+    String ingredientName;
 
     // Sesuai PDF: "Station ini juga dapat digunakan untuk menaruh bahan"
     // Jadi kita butuh variabel untuk menyimpan item yang ditaruh di atas crate
@@ -22,7 +22,6 @@ public class IngredientStorage extends Tile {
         this.gp = gp;
         this.ingredientName = ingredientName;
 
-        // Storage bersifat solid (tidak bisa ditembus)
         this.collision = true;
 
         loadStorageImage();
@@ -30,23 +29,12 @@ public class IngredientStorage extends Tile {
 
     private void loadStorageImage() {
         try {
-            // Memuat gambar crate spesifik, misal: "crate_potato.png"
-            // Pastikan Anda membuat gambar ini di folder /res/tiles/
             image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
         } catch (Exception e) {
-            try {
-                // Fallback ke gambar default jika gambar spesifik belum ada
-                image = ImageIO.read(getClass().getResourceAsStream("/tiles/crate_default.png"));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            e.printStackTrace();
         }
     }
 
-    /**
-     * Method logika interaksi utama.
-     * Dipanggil oleh CollisionChecker saat pemain menekan tombol interaksi di depan storage ini.
-     */
     public void interact(Entity player) {
 
         // KASUS 1: Ada item di atas crate (misal piring atau bahan lain yang ditaruh player sebelumnya)

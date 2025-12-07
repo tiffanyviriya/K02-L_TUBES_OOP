@@ -25,7 +25,7 @@ public class Item {
 
     public void draw(Graphics2D g2) {
         if (image != null) {
-            g2.drawImage(image, worldX, worldY, gp.tileSize, gp.tileSize, null);
+            g2.drawImage(image, worldX, worldY, gp.itemSize , gp.itemSize , null);
         }
     }
 

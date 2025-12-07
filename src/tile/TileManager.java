@@ -40,9 +40,7 @@ public class TileManager {
             tile[2].image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
             tile[2].collision = true;
 
-            tile[3] = new IngredientStorage(gp, "potato");
-            tile[2].image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
-            tile[2].collision = true;
+            tile[3] = new IngredientStorage(gp, "cucumber");
 
         }catch(IOException e) {
             e.printStackTrace();

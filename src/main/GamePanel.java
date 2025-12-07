@@ -9,10 +9,11 @@ import java.io.IOException;
 
 public class GamePanel extends JPanel implements Runnable {
 
-    final int originalTileSize = 16;
+    public final int originalTileSize = 16;
     final int scale = 3;
 
     public final int tileSize = originalTileSize * scale;  // 48x48 tile
+    public final int itemSize = 24;
     public final int maxScreenCol = 18;
     public final int maxScreenRow = 14;
     final int screenWidth = tileSize * maxScreenCol; // 768
@@ -27,7 +28,9 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     public KeyHandler keyH = new KeyHandler(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
+
     public TileManager tileM = new TileManager(this);
+    public ItemManager itemM = new ItemManager(this);
 
     public Player player = new Player(this, keyH);
 
@@ -86,6 +89,8 @@ public class GamePanel extends JPanel implements Runnable {
         tileM.draw(g2);
 
         player.draw(g2);
+
+        itemM.draw(g2);
 
         g2.dispose();
     }

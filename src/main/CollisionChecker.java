@@ -98,12 +98,6 @@ public class CollisionChecker {
         }
     }
 
-//    public int checkEntity(Entity entity, Entity[] target) {
-//        int index = 999;
-//
-//        for(int i = 0; i < target.length; i++) {
-
-
     public void checkPlayer(Entity entity) {
         entity.solidArea.x = entity.pos.x + entity.solidArea.x;
         entity.solidArea.y = entity.pos.y + entity.solidArea.y;

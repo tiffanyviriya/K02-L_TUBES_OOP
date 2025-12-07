@@ -7,5 +7,5 @@ public interface Preparable {
 
     void chop();
     void cook();
-    void burn(); // Tambahan untuk menghandle gosong
+    void burn();
 }

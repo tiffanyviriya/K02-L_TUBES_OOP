@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import main.GamePanel;
 import main.KeyHandler;
 import tile.IngredientStorage;
+import tile.Tile;
 
 import static java.lang.Math.sqrt;
 
@@ -66,7 +67,7 @@ public class Player extends Entity {
 
     public void update() {
 
-        if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed || keyH.interactPressed) {
+        if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
             if (keyH.upPressed) {
                 direction = "up";
             } else if (keyH.downPressed) {
@@ -77,36 +78,8 @@ public class Player extends Entity {
                 direction = "right";
             }
 
-            if (keyH.interactPressed && inventory == null){
-                interact();
-            }
-
             collisionOn = false;
             gp.cChecker.checkTile(this);
-
-//            int npcIndex = gp.cChecker.checkEntity(this, gp.npc);
-//            interactNPC(npcIndex);
-
-//            if (collisionOn == false) {
-//                if (direction.equals("up")) {
-//                    movementY += 1;
-//                }
-//                if (direction.equals("down")) {
-//                    movementY -= 1;
-//                }
-//                if (direction.equals("right")) {
-//                    movementX -= 1;
-//                }
-//                if (direction.equals("left")) {
-//                    movementX += 1;
-//                }
-//
-//                normalize();
-//                movementY *= speed;
-//                movementY *= speed;
-//                this.pos.x += movementX;
-//                this.y += movementY;
-//            }
 
             if (collisionOn == false) {
                 if (direction.equals("up")) {
@@ -136,68 +109,35 @@ public class Player extends Entity {
                 }
                 spriteCounter = 0;
             }
-
+        }
+        else if (keyH.interactPressed) {
+            interact();
+            keyH.interactPressed = false;
         }
     }
 
     public void draw(Graphics2D g2) {
         BufferedImage image = null;
-//        BufferedImage image = neutral;
 
         switch(direction) {
             case "up":
-                if(spriteNum == 1) {
-                    image = up1;
-                }
-                else if(spriteNum == 2) {
-                    image = up2;
-                }
-                else if(spriteNum == 3) {
-                    image = up0;
-                }
+                image = (spriteNum == 1) ? up1 : (spriteNum == 2) ? up2 : up0;
                 break;
-
             case "down":
-                if(spriteNum == 1) {
-                    image = down1;
-                }
-                else if(spriteNum == 2) {
-                    image = down2;
-                }
-                else if(spriteNum == 3) {
-                    image = down0;
-                }
+                image = (spriteNum == 1) ? down1 : (spriteNum == 2) ? down2 : down0;
                 break;
-
             case "left":
-                if(spriteNum == 1) {
-                    image = left1;
-                }
-                else if(spriteNum == 2) {
-                    image = left2;
-                }
-                else if(spriteNum == 3) {
-                    image = left0;
-                }
+                image = (spriteNum == 1) ? left1 : (spriteNum == 2) ? left2 : left0;
                 break;
-
             case "right":
-                if(spriteNum == 1) {
-                    image = right1;
-                }
-                else if(spriteNum == 2) {
-                    image = right2;
-                }
-                else if(spriteNum == 3) {
-                    image = right0;
-                }
+                image = (spriteNum == 1) ? right1 : (spriteNum == 2) ? right2 : right0;
                 break;
         }
 
         g2.drawImage(image, pos.x, pos.y, gp.tileSize, gp.tileSize, null);
 
         if (inventory != null) {
-            inventory.worldX = pos.x;
+            inventory.worldX = pos.x + gp.itemSize / 2;
             inventory.worldY = pos.y;
 
             inventory.draw(g2);
@@ -226,22 +166,52 @@ public class Player extends Entity {
         int col = currentWorldX / gp.tileSize;
         int row = currentWorldY / gp.tileSize;
 
+        System.out.println("Cek Tile di Col: " + col + ", Row: " + row);
+
         if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
 
+            Tile targetTile;
+
             int tileNum = gp.tileM.mapTileNum[col][row];
+            targetTile = gp.tileM.tile[tileNum];
 
-            if (gp.tileM.tile[tileNum] instanceof IngredientStorage) {
+            if (targetTile != null) {
+                // KASUS 1: Interaksi dengan Station/Storage
+                if (targetTile instanceof IngredientStorage) {
+                    ((IngredientStorage) targetTile).interact(this);
+                }
 
-                IngredientStorage station = (IngredientStorage) gp.tileM.tile[tileNum];
+                // KASUS 2: Interaksi dengan Lantai (Tile tidak solid)
+                else {
 
-                station.interact(this);
+                    // A. DROP ITEM (Tangan Penuh -> Taruh di lantai)
+                    if (inventory != null) {
+                        // Pastikan di lantai itu belum ada item lain (opsional, biar ga numpuk)
+                        Item existingItem = gp.itemM.pickUpItem(col, row);
+
+                        if (existingItem == null) {
+                            // Panggil ItemManager untuk simpan item
+                            gp.itemM.addItem(inventory, col, row);
+                            System.out.println("Drop " + inventory.name + " ke lantai.");
+                            inventory = null;
+                        } else {
+                            // Jika sudah ada item, kembalikan item yg dicek tadi (karena pickUpItem menghapusnya)
+                            gp.itemM.addItem(existingItem, col, row);
+                            System.out.println("Lantai penuh!");
+                        }
+                    }
+
+                    // B. PICK UP ITEM (Tangan Kosong -> Ambil dari lantai)
+                    else {
+                        Item foundItem = gp.itemM.pickUpItem(col, row);
+
+                        if (foundItem != null) {
+                            inventory = foundItem;
+                            System.out.println("Mengambil " + inventory.name + " dari lantai.");
+                        }
+                    }
+                }
             }
         }
-    }
-
-    private void normalize() {
-        double length = sqrt(movementX * movementX + movementY * movementY);
-        movementX /= length;
-        movementY /= length;
     }
 }

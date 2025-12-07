@@ -27,12 +27,6 @@ public class KeyHandler implements KeyListener {
             if(code == KeyEvent.VK_D) { rightPressed = true; }
             if(code == KeyEvent.VK_C) { interactPressed = true; }
         }
-
-//        else if(gp.gameState == gp.dialogueState) {
-//            if(code == KeyEvent.VK_E) {
-//                gp.gameState = gp.playState;
-//            }
-//        }
     }
 
     @Override
