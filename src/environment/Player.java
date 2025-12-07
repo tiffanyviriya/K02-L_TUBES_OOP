@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 import main.GamePanel;
 import main.KeyHandler;
+import tile.IngredientStorage;
 
 import static java.lang.Math.sqrt;
 
@@ -35,7 +36,6 @@ public class Player extends Entity {
     }
 
     public void setDefaultValue() {
-
         pos.x = 480;
         pos.y = 480;
         speed = 4;
@@ -66,7 +66,7 @@ public class Player extends Entity {
 
     public void update() {
 
-        if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
+        if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed || keyH.interactPressed) {
             if (keyH.upPressed) {
                 direction = "up";
             } else if (keyH.downPressed) {
@@ -75,6 +75,10 @@ public class Player extends Entity {
                 direction = "left";
             } else if (keyH.rightPressed) {
                 direction = "right";
+            }
+
+            if (keyH.interactPressed && inventory == null){
+                interact();
             }
 
             collisionOn = false;
@@ -132,6 +136,7 @@ public class Player extends Entity {
                 }
                 spriteCounter = 0;
             }
+
         }
     }
 
@@ -190,6 +195,48 @@ public class Player extends Entity {
         }
 
         g2.drawImage(image, pos.x, pos.y, gp.tileSize, gp.tileSize, null);
+
+        if (inventory != null) {
+            inventory.worldX = pos.x;
+            inventory.worldY = pos.y;
+
+            inventory.draw(g2);
+        }
+    }
+
+    public void interact() {
+        int currentWorldX = pos.x + (gp.tileSize / 2);
+        int currentWorldY = pos.y + (gp.tileSize / 2);
+
+        switch (direction) {
+            case "up":
+                currentWorldY -= gp.tileSize;
+                break;
+            case "down":
+                currentWorldY += gp.tileSize;
+                break;
+            case "left":
+                currentWorldX -= gp.tileSize;
+                break;
+            case "right":
+                currentWorldX += gp.tileSize;
+                break;
+        }
+
+        int col = currentWorldX / gp.tileSize;
+        int row = currentWorldY / gp.tileSize;
+
+        if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
+
+            int tileNum = gp.tileM.mapTileNum[col][row];
+
+            if (gp.tileM.tile[tileNum] instanceof IngredientStorage) {
+
+                IngredientStorage station = (IngredientStorage) gp.tileM.tile[tileNum];
+
+                station.interact(this);
+            }
+        }
     }
 
     private void normalize() {

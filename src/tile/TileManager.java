@@ -29,14 +29,18 @@ public class TileManager {
     private void getTileImage() {
 
         try {
-            tile[0] = new Tile();
+            tile[0] = new Tile(gp);
             tile[0].image = ImageIO.read(getClass().getResourceAsStream("/tiles/floor1.png"));
 
-            tile[1] = new Tile();
+            tile[1] = new Tile(gp);
             tile[1].image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
             tile[1].collision = true;
 
-            tile[2] = new Tile();
+            tile[2] = new Tile(gp);
+            tile[2].image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
+            tile[2].collision = true;
+
+            tile[3] = new IngredientStorage(gp, "potato");
             tile[2].image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
             tile[2].collision = true;
 

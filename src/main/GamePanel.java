@@ -5,6 +5,7 @@ import tile.TileManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -26,7 +27,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
     public KeyHandler keyH = new KeyHandler(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
-    TileManager tileM = new TileManager(this);
+    public TileManager tileM = new TileManager(this);
 
     public Player player = new Player(this, keyH);
 

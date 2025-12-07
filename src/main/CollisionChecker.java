@@ -1,6 +1,9 @@
 package main;
 
-import environment.Entity;
+import environment.*;
+import tile.IngredientStorage;
+
+import java.io.IOException;
 
 public class CollisionChecker {
 
@@ -60,45 +63,46 @@ public class CollisionChecker {
         }
     }
     
-    public void interact(Entity entity){
+    public void interact(Entity entity) throws IOException {
+        int currentWorldX = entity.pos.x + (gp.tileSize / 2);
+        int currentWorldY = entity.pos.y + (gp.tileSize / 2);
 
+        switch (entity.direction) {
+            case "up":
+                currentWorldY -= gp.tileSize;
+                break;
+            case "down":
+                currentWorldY += gp.tileSize;
+                break;
+            case "left":
+                currentWorldX -= gp.tileSize;
+                break;
+            case "right":
+                currentWorldX += gp.tileSize;
+                break;
+        }
+
+        int col = currentWorldX / gp.tileSize;
+        int row = currentWorldY / gp.tileSize;
+
+        if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
+
+            int tileNum = gp.tileM.mapTileNum[col][row];
+
+            if (gp.tileM.tile[tileNum] instanceof IngredientStorage) {
+
+                IngredientStorage station = (IngredientStorage) gp.tileM.tile[tileNum];
+
+                station.interact(entity);
+            }
+        }
     }
-
 
 //    public int checkEntity(Entity entity, Entity[] target) {
 //        int index = 999;
 //
 //        for(int i = 0; i < target.length; i++) {
-//            if(target[i] != null) {
-//
-//                entity.solidArea.x = entity.pos.x + entity.solidArea.x;
-//                entity.solidArea.y = entity.y + entity.solidArea.y;
-//
-//                target[i].solidArea.x = target[i].x + target[i].solidArea.x;
-//                target[i].solidArea.y = target[i].y + target[i].solidArea.y;
-//
-//                switch(entity.direction) {
-//                    case "up": entity.solidArea.y -= entity.speed; break;
-//                    case "down": entity.solidArea.y += entity.speed; break;
-//                    case "left": entity.solidArea.x -= entity.speed; break;
-//                    case "right": entity.solidArea.x += entity.speed; break;
-//                }
-//
-//                if(entity.solidArea.intersects(target[i].solidArea)) {
-//                    if(target[i] != entity) {
-//                        entity.collisionOn = true;
-//                        index = i;
-//                    }
-//                }
-//
-//                entity.solidArea.x = entity.solidAreaDefaultX;
-//                entity.solidArea.y = entity.solidAreaDefaultY;
-//                target[i].solidArea.x = target[i].solidAreaDefaultX;
-//                target[i].solidArea.y = target[i].solidAreaDefaultY;
-//            }
-//        }
-//        return index;
-//    }
+
 
     public void checkPlayer(Entity entity) {
         entity.solidArea.x = entity.pos.x + entity.solidArea.x;

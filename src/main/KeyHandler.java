@@ -25,7 +25,7 @@ public class KeyHandler implements KeyListener {
             if(code == KeyEvent.VK_S) { downPressed = true; }
             if(code == KeyEvent.VK_A) { leftPressed = true; }
             if(code == KeyEvent.VK_D) { rightPressed = true; }
-            if(code == KeyEvent.VK_E) { interactPressed = true; }
+            if(code == KeyEvent.VK_C) { interactPressed = true; }
         }
 
 //        else if(gp.gameState == gp.dialogueState) {
@@ -51,7 +51,7 @@ public class KeyHandler implements KeyListener {
         if(code == KeyEvent.VK_D) {
             rightPressed = false;
         }
-        if(code == KeyEvent.VK_E) {
+        if(code == KeyEvent.VK_C) {
             interactPressed = false;
         }
     }
