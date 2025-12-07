@@ -3,6 +3,7 @@ package environment;
 import main.GamePanel;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -20,6 +21,7 @@ public class Ingredient extends Item implements Preparable{
 
         loadImages();
         updateImage();
+        solidArea = new Rectangle(0,0, 24,24);
     }
 
     private void loadImages() {
@@ -40,7 +42,6 @@ public class Ingredient extends Item implements Preparable{
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Gagal memuat gambar untuk: " + name);
         }
     }
 

@@ -62,40 +62,45 @@ public class CollisionChecker {
                 break;
         }
     }
-    
-    public void interact(Entity entity) throws IOException {
-        int currentWorldX = entity.pos.x + (gp.tileSize / 2);
-        int currentWorldY = entity.pos.y + (gp.tileSize / 2);
 
-        switch (entity.direction) {
-            case "up":
-                currentWorldY -= gp.tileSize;
-                break;
-            case "down":
-                currentWorldY += gp.tileSize;
-                break;
-            case "left":
-                currentWorldX -= gp.tileSize;
-                break;
-            case "right":
-                currentWorldX += gp.tileSize;
-                break;
-        }
+    public Item checkItem(Entity entity) {
 
-        int col = currentWorldX / gp.tileSize;
-        int row = currentWorldY / gp.tileSize;
+        Item foundItem = null;
 
-        if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
+        // Loop melalui semua item yang ada di ItemManager
+        for (int i = 0; i < gp.itemM.itemsOnFloor.size(); i++) {
 
-            int tileNum = gp.tileM.mapTileNum[col][row];
+            Item target = gp.itemM.itemsOnFloor.get(i);
 
-            if (gp.tileM.tile[tileNum] instanceof IngredientStorage) {
+            if (target != null) {
+                // 1. Dapatkan posisi SolidArea Entity (Player) secara Global
+                entity.solidArea.x = entity.pos.x + entity.solidArea.x;
+                entity.solidArea.y = entity.pos.y + entity.solidArea.y;
 
-                IngredientStorage station = (IngredientStorage) gp.tileM.tile[tileNum];
+                // 2. Dapatkan posisi SolidArea Target (Item) secara Global
+                target.solidArea.x = target.worldX + target.solidArea.x;
+                target.solidArea.y = target.worldY + target.solidArea.y;
 
-                station.interact(entity);
+                // 3. Cek Intersect (Apakah kotak merah bersentuhan?)
+                if (entity.solidArea.intersects(target.solidArea)) {
+                    foundItem = target;
+                }
+
+                // 4. RESET SolidArea ke default (Sangat Penting!)
+                entity.solidArea.x = entity.solidAreaDefaultX;
+                entity.solidArea.y = entity.solidAreaDefaultY;
+
+                target.solidArea.x = target.solidAreaDefaultX;
+                target.solidArea.y = target.solidAreaDefaultY;
+
+                // Jika sudah ketemu satu, langsung kembalikan (agar tidak ambil 2 item sekaligus)
+                if (foundItem != null) {
+                    break;
+                }
             }
         }
+
+        return foundItem;
     }
 
     public void checkPlayer(Entity entity) {

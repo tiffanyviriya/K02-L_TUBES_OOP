@@ -8,6 +8,7 @@ import java.io.IOException;
 import main.GamePanel;
 
 public class Item {
+    public Rectangle solidArea;
     protected GamePanel gp;
     public String name;
     public BufferedImage image;
@@ -16,8 +17,7 @@ public class Item {
 
     public int worldX, worldY;
 
-    public int solidAreaDefaultX = 0;
-    public int solidAreaDefaultY = 0;
+    public int solidAreaDefaultX, solidAreaDefaultY;
 
     public Item(GamePanel gp) {
         this.gp = gp;

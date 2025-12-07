@@ -4,46 +4,38 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import environment.Entity;
 import environment.Item;
 
 public class ItemManager {
     GamePanel gp;
-    // Menggunakan ArrayList agar dinamis (bisa menampung banyak item tanpa batas array fix)
     public ArrayList<Item> itemsOnFloor = new ArrayList<>();
 
     public ItemManager(GamePanel gp) {
         this.gp = gp;
     }
 
-    public void addItem(Item item, int col, int row) {
-        // Set posisi item sesuai grid
-        item.worldX = col * gp.tileSize;
-        item.worldY = row * gp.tileSize;
-
-        // Tambahkan ke list untuk dirender dan dicek interaksinya
+    public void addItem(Item item, int x, int y) {
+        item.worldX = x;
+        item.worldY = y;
         itemsOnFloor.add(item);
     }
 
     /**
-     * Mengecek apakah ada item di koordinat (col, row) tertentu.
-     * Jika ada, item diambil (dihapus dari lantai) dan dikembalikan ke Player.
+     * Sekarang logika collision dipindahkan ke CollisionChecker.
+     * Method ini hanya bertugas memanggil checker dan menghapus item dari list jika ketemu.
      */
-    public Item pickUpItem(int col, int row) {
+    public Item getItemOnPlayer(Entity player) {
 
-        Iterator<Item> iterator = itemsOnFloor.iterator();
+        // Panggil CollisionChecker untuk mengecek item
+        Item item = gp.cChecker.checkItem(player);
 
-        while (iterator.hasNext()) {
-            Item item = iterator.next();
-
-            int itemCol = item.worldX / gp.tileSize;
-            int itemRow = item.worldY / gp.tileSize;
-
-            if (itemCol == col && itemRow == row) {
-                iterator.remove(); // Hapus dari lantai
-                return item; // Kembalikan item ke player
-            }
+        // Jika CollisionChecker menemukan item yang bersentuhan
+        if (item != null) {
+            itemsOnFloor.remove(item); // Hapus dari lantai
         }
-        return null; // Tidak ada item di lokasi tersebut
+
+        return item; // Kembalikan ke player
     }
 
     public void draw(Graphics2D g2) {

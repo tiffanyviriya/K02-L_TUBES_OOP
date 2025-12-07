@@ -145,72 +145,58 @@ public class Player extends Entity {
     }
 
     public void interact() {
+        // --- STEP 1: Cek Station/Meja (Grid Based) ---
+        // Kita tetap butuh ini karena Station adalah Tile statis, bukan Entity
         int currentWorldX = pos.x + (gp.tileSize / 2);
         int currentWorldY = pos.y + (gp.tileSize / 2);
 
+        // Project 1 kotak ke depan untuk cek meja
+        int interactX = currentWorldX;
+        int interactY = currentWorldY;
         switch (direction) {
-            case "up":
-                currentWorldY -= gp.tileSize;
-                break;
-            case "down":
-                currentWorldY += gp.tileSize;
-                break;
-            case "left":
-                currentWorldX -= gp.tileSize;
-                break;
-            case "right":
-                currentWorldX += gp.tileSize;
-                break;
+            case "up": interactY -= gp.tileSize; break;
+            case "down": interactY += gp.tileSize; break;
+            case "left": interactX -= gp.tileSize; break;
+            case "right": interactX += gp.tileSize; break;
         }
 
-        int col = currentWorldX / gp.tileSize;
-        int row = currentWorldY / gp.tileSize;
+        int col = interactX / gp.tileSize;
+        int row = interactY / gp.tileSize;
 
-        System.out.println("Cek Tile di Col: " + col + ", Row: " + row);
-
+        Tile targetTile = null;
         if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
-
-            Tile targetTile;
-
             int tileNum = gp.tileM.mapTileNum[col][row];
             targetTile = gp.tileM.tile[tileNum];
+        }
 
-            if (targetTile != null) {
-                // KASUS 1: Interaksi dengan Station/Storage
-                if (targetTile instanceof IngredientStorage) {
-                    ((IngredientStorage) targetTile).interact(this);
-                }
+        // Jika depan ada Meja/Station, interaksi dengan meja dulu (Prioritas Utama)
+        if (targetTile != null && targetTile instanceof IngredientStorage) {
+            System.out.println("Interaksi dengan Storage");
+            ((IngredientStorage) targetTile).interact(this);
+            return; // Selesai, jangan lanjut ke logika lantai
+        }
 
-                // KASUS 2: Interaksi dengan Lantai (Tile tidak solid)
-                else {
+        // --- STEP 2: Cek Item di Lantai (Collision Based) ---
+        // Jika tidak ada meja, baru kita cek item
 
-                    // A. DROP ITEM (Tangan Penuh -> Taruh di lantai)
-                    if (inventory != null) {
-                        // Pastikan di lantai itu belum ada item lain (opsional, biar ga numpuk)
-                        Item existingItem = gp.itemM.pickUpItem(col, row);
+        // A. DROP ITEM (Jika bawa item)
+        if (inventory != null) {
+            // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
+            // Menggunakan pos.x asli, bukan grid
+            int itemX = pos.x + gp.itemSize / 2;
+            int itemY = pos.y + gp.itemSize;
+            gp.itemM.addItem(inventory, itemX, itemY);
+            inventory = null;
+        }
 
-                        if (existingItem == null) {
-                            // Panggil ItemManager untuk simpan item
-                            gp.itemM.addItem(inventory, col, row);
-                            System.out.println("Drop " + inventory.name + " ke lantai.");
-                            inventory = null;
-                        } else {
-                            // Jika sudah ada item, kembalikan item yg dicek tadi (karena pickUpItem menghapusnya)
-                            gp.itemM.addItem(existingItem, col, row);
-                            System.out.println("Lantai penuh!");
-                        }
-                    }
+        // B. PICK UP ITEM (Jika tangan kosong)
+        else {
+            // Gunakan metode tabrakan solidArea
+            Item foundItem = gp.itemM.getItemOnPlayer(this);
 
-                    // B. PICK UP ITEM (Tangan Kosong -> Ambil dari lantai)
-                    else {
-                        Item foundItem = gp.itemM.pickUpItem(col, row);
-
-                        if (foundItem != null) {
-                            inventory = foundItem;
-                            System.out.println("Mengambil " + inventory.name + " dari lantai.");
-                        }
-                    }
-                }
+            if (foundItem != null) {
+                inventory = foundItem;
+                System.out.println("Mengambil " + inventory.name);
             }
         }
     }
