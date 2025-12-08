@@ -107,8 +107,8 @@ public class CollisionChecker {
         entity.solidArea.x = entity.pos.x + entity.solidArea.x;
         entity.solidArea.y = entity.pos.y + entity.solidArea.y;
 
-        gp.player.solidArea.x = gp.player.pos.x + gp.player.solidArea.x;
-        gp.player.solidArea.y = gp.player.pos.y + gp.player.solidArea.y;
+        gp.playerM.getActivePlayer().solidArea.x = gp.playerM.getActivePlayer().pos.x + gp.playerM.getActivePlayer().solidArea.x;
+        gp.playerM.getActivePlayer().solidArea.y = gp.playerM.getActivePlayer().pos.y + gp.playerM.getActivePlayer().solidArea.y;
 
         switch(entity.direction) {
             case "up": entity.solidArea.y -= entity.speed; break;
@@ -117,13 +117,13 @@ public class CollisionChecker {
             case "right": entity.solidArea.x += entity.speed; break;
         }
 
-        if(entity.solidArea.intersects(gp.player.solidArea)) {
+        if(entity.solidArea.intersects(gp.playerM.getActivePlayer().solidArea)) {
             entity.collisionOn = true;
         }
 
         entity.solidArea.x = entity.solidAreaDefaultX;
         entity.solidArea.y = entity.solidAreaDefaultY;
-        gp.player.solidArea.x = gp.player.solidAreaDefaultX;
-        gp.player.solidArea.y = gp.player.solidAreaDefaultY;
+        gp.playerM.getActivePlayer().solidArea.x = gp.playerM.getActivePlayer().solidAreaDefaultX;
+        gp.playerM.getActivePlayer().solidArea.y = gp.playerM.getActivePlayer().solidAreaDefaultY;
     }
 }

@@ -31,8 +31,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public TileManager tileM = new TileManager(this);
     public ItemManager itemM = new ItemManager(this);
-
-    public Player player = new Player(this, keyH);
+    public PlayerManager playerM = new PlayerManager(this, keyH);
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -77,7 +76,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
-        player.update();
+        playerM.update();
     }
 
     @Override
@@ -88,7 +87,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         tileM.draw(g2);
         itemM.draw(g2);
-        player.draw(g2);
+        playerM.draw(g2);
 
         g2.dispose();
     }

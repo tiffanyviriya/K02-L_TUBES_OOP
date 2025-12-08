@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 import main.GamePanel;
 import main.KeyHandler;
+import main.PlayerState;
 import tile.IngredientStorage;
 import tile.Tile;
 
@@ -16,17 +17,17 @@ import static java.lang.Math.sqrt;
 
 public class Player extends Entity {
 
-    String id;
-    String name;
     KeyHandler keyH;
-    double movementX, movementY;
+    public PlayerState playerState;
 
-    public Player(GamePanel gp, KeyHandler keyH) {
-
+    public Player(GamePanel gp, KeyHandler keyH, int posX, int posY) {
         super(gp);
 
         this.gp = gp;
         this.keyH = keyH;
+
+        pos.x = posX;
+        pos.y = posY;
 
         setDefaultValue();
         getPlayerImage();
@@ -37,10 +38,9 @@ public class Player extends Entity {
     }
 
     public void setDefaultValue() {
-        pos.x = 480;
-        pos.y = 480;
         speed = 4;
         direction = "down";
+        playerState = PlayerState.IDLE;
     }
 
     public void getPlayerImage() {
@@ -110,9 +110,13 @@ public class Player extends Entity {
                 spriteCounter = 0;
             }
         }
-        else if (keyH.interactPressed) {
+        if (keyH.interactPressed) {
             interact();
             keyH.interactPressed = false;
+        }
+        if (keyH.switchPressed) {
+            gp.playerM.switchPlayer();
+            keyH.switchPressed = false;
         }
     }
 
