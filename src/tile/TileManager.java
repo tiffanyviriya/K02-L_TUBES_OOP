@@ -75,8 +75,11 @@ public class TileManager {
                 case 3: // INGREDIENT STORAGE (Misal angka 3)
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
                     break;
-                case 4: // Misal angka 3 di map adalah Cooking Station
+                case 4: // Misal angka 4 di map adalah Cooking Station
                     worldTiles[col][row] = new CookingStation(gp);
+                    break;
+                case 5:
+                    worldTiles[col][row] = new ServingCounter(gp);
                     break;
                 default: // Default floor
                     worldTiles[col][row] = new Tile(gp);

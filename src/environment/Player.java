@@ -12,6 +12,8 @@ import main.KeyHandler;
 import main.PlayerState;
 import tile.IngredientStorage;
 import tile.Tile;
+import tile.CuttingStation; // Tambahkan baris ini
+import tile.ServingCounter; // Tambahkan ini juga jaga-jaga
 
 import static java.lang.Math.sqrt;
 
@@ -222,4 +224,4 @@ public class Player extends Entity {
                 }
             }
         }
-    }
+    }}

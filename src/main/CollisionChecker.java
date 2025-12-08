@@ -1,9 +1,8 @@
 package main;
 
-import environment.*;
-import tile.IngredientStorage;
-
-import java.io.IOException;
+import environment.Entity;
+import environment.Item;
+import tile.Tile;
 
 public class CollisionChecker {
 
@@ -14,92 +13,86 @@ public class CollisionChecker {
     }
 
     public void checkTile(Entity entity) {
-
-        int entityLeftWorldX = entity.pos.x + entity.solidArea.x + 8;
+        int entityLeftWorldX = entity.pos.x + entity.solidArea.x;
         int entityRightWorldX = entity.pos.x + entity.solidArea.x + entity.solidArea.width;
         int entityTopWorldY = entity.pos.y + entity.solidArea.y;
-        int entityBottomWorldY = entity.pos.y + entity.solidArea.y + entity.solidArea.height - 4;
+        int entityBottomWorldY = entity.pos.y + entity.solidArea.y + entity.solidArea.height;
 
-        int entityLeftCol = entityLeftWorldX/gp.tileSize;
-        int entityRightCol = entityRightWorldX/gp.tileSize;
-        int entityTopRow = entityTopWorldY/gp.tileSize;
-        int entityBottomRow = entityBottomWorldY/gp.tileSize;
+        int entityLeftCol = entityLeftWorldX / gp.tileSize;
+        int entityRightCol = entityRightWorldX / gp.tileSize;
+        int entityTopRow = entityTopWorldY / gp.tileSize;
+        int entityBottomRow = entityBottomWorldY / gp.tileSize;
 
-        int tileNum1, tileNum2;
+        Tile tile1, tile2;
 
-        switch(entity.direction) {
-            case "up" :
-                entityTopRow = (entityTopWorldY - entity.speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
-                tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
-                if(gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case "down" :
-                entityBottomRow = (entityBottomWorldY + entity.speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
-                tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
-                if(gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case "right" :
-                entityRightCol = (entityRightWorldX + entity.speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityRightCol][entityTopRow];
-                tileNum2 = gp.tileM.mapTileNum[entityRightCol][entityBottomRow];
-                if(gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision) {
-                    entity.collisionOn = true;
-                }
-                break;
-            case "left" :
-                entityLeftCol = (entityLeftWorldX - entity.speed)/gp.tileSize;
-                tileNum1 = gp.tileM.mapTileNum[entityLeftCol][entityTopRow];
-                tileNum2 = gp.tileM.mapTileNum[entityLeftCol][entityBottomRow];
-                if(gp.tileM.tile[tileNum1].collision || gp.tileM.tile[tileNum2].collision) {
-                    entity.collisionOn = true;
-                }
-                break;
+        try {
+            switch(entity.direction) {
+                case "up":
+                    entityTopRow = (entityTopWorldY - entity.speed) / gp.tileSize;
+                    tile1 = gp.tileM.worldTiles[entityLeftCol][entityTopRow];
+                    tile2 = gp.tileM.worldTiles[entityRightCol][entityTopRow];
+                    if(tile1.collision || tile2.collision) {
+                        entity.collisionOn = true;
+                    }
+                    break;
+                case "down":
+                    entityBottomRow = (entityBottomWorldY + entity.speed) / gp.tileSize;
+                    tile1 = gp.tileM.worldTiles[entityLeftCol][entityBottomRow];
+                    tile2 = gp.tileM.worldTiles[entityRightCol][entityBottomRow];
+                    if(tile1.collision || tile2.collision) {
+                        entity.collisionOn = true;
+                    }
+                    break;
+                case "left":
+                    entityLeftCol = (entityLeftWorldX - entity.speed) / gp.tileSize;
+                    tile1 = gp.tileM.worldTiles[entityLeftCol][entityTopRow];
+                    tile2 = gp.tileM.worldTiles[entityLeftCol][entityBottomRow];
+                    if(tile1.collision || tile2.collision) {
+                        entity.collisionOn = true;
+                    }
+                    break;
+                case "right":
+                    entityRightCol = (entityRightWorldX + entity.speed) / gp.tileSize;
+                    tile1 = gp.tileM.worldTiles[entityRightCol][entityTopRow];
+                    tile2 = gp.tileM.worldTiles[entityRightCol][entityBottomRow];
+                    if(tile1.collision || tile2.collision) {
+                        entity.collisionOn = true;
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            entity.collisionOn = true;
         }
     }
 
     public Item checkItem(Entity entity) {
-
         Item foundItem = null;
 
-        // Loop melalui semua item yang ada di ItemManager
         for (int i = 0; i < gp.itemM.itemsOnFloor.size(); i++) {
-
             Item target = gp.itemM.itemsOnFloor.get(i);
 
             if (target != null) {
-                // 1. Dapatkan posisi SolidArea Entity (Player) secara Global
                 entity.solidArea.x = entity.pos.x + entity.solidArea.x;
                 entity.solidArea.y = entity.pos.y + entity.solidArea.y;
 
-                // 2. Dapatkan posisi SolidArea Target (Item) secara Global
                 target.solidArea.x = target.worldX + target.solidArea.x;
                 target.solidArea.y = target.worldY + target.solidArea.y;
 
-                // 3. Cek Intersect (Apakah kotak merah bersentuhan?)
                 if (entity.solidArea.intersects(target.solidArea)) {
                     foundItem = target;
                 }
 
-                // 4. RESET SolidArea ke default (Sangat Penting!)
                 entity.solidArea.x = entity.solidAreaDefaultX;
                 entity.solidArea.y = entity.solidAreaDefaultY;
 
                 target.solidArea.x = target.solidAreaDefaultX;
                 target.solidArea.y = target.solidAreaDefaultY;
 
-                // Jika sudah ketemu satu, langsung kembalikan (agar tidak ambil 2 item sekaligus)
                 if (foundItem != null) {
                     break;
                 }
             }
         }
-
         return foundItem;
     }
 

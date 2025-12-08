@@ -6,6 +6,7 @@ import environment.IngredientState;
 import environment.Item;
 import main.GamePanel;
 import main.PlayerState;
+import environment.Player;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -59,8 +60,9 @@ public class CuttingStation extends Tile {
 
             // A. LOGIKA MEMOTONG (Syarat: Item RAW, Tangan Kosong)
             if (isRawIngredient && player.inventory == null) {
-                // Set player jadi BUSY (tidak bisa gerak)
-                player.playerState = PlayerState.BUSY;
+                if (player instanceof Player) {
+                    ((Player) player).playerState = PlayerState.BUSY;
+                }
 
                 // Tambah progress
                 currentProgress++;
@@ -72,9 +74,13 @@ public class CuttingStation extends Tile {
 
                 // Cek apakah selesai
                 if (currentProgress >= TIME_TO_CUT) {
-                    ((Ingredient) itemOnTop).chop(); // Ubah jadi CHOPPED
-                    currentProgress = 0; // Reset progress untuk item berikutnya
-                    player.playerState = PlayerState.IDLE; // Bebaskan player
+                    ((Ingredient) itemOnTop).chop();
+                    currentProgress = 0;
+
+                    // CASTING LAGI DISINI
+                    if (player instanceof Player) {
+                        ((Player) player).playerState = PlayerState.IDLE;
+                    }
                     System.out.println("Selesai memotong!");
                 }
             }

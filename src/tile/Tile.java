@@ -1,7 +1,7 @@
 package tile;
 
 import java.awt.image.BufferedImage;
-
+import environment.Entity;
 import main.GamePanel;
 
 public class Tile {
@@ -11,5 +11,8 @@ public class Tile {
 
     public Tile(GamePanel gp){
         this.gp = gp;
+    }
+
+    public void interact(Entity player) {
     }
 }
