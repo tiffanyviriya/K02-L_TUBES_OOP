@@ -67,33 +67,27 @@ public class CollisionChecker {
 
         Item foundItem = null;
 
-        // Loop melalui semua item yang ada di ItemManager
         for (int i = 0; i < gp.itemM.itemsOnFloor.size(); i++) {
 
             Item target = gp.itemM.itemsOnFloor.get(i);
 
             if (target != null) {
-                // 1. Dapatkan posisi SolidArea Entity (Player) secara Global
                 entity.solidArea.x = entity.pos.x + entity.solidArea.x;
                 entity.solidArea.y = entity.pos.y + entity.solidArea.y;
 
-                // 2. Dapatkan posisi SolidArea Target (Item) secara Global
                 target.solidArea.x = target.worldX + target.solidArea.x;
                 target.solidArea.y = target.worldY + target.solidArea.y;
 
-                // 3. Cek Intersect (Apakah kotak merah bersentuhan?)
                 if (entity.solidArea.intersects(target.solidArea)) {
                     foundItem = target;
                 }
 
-                // 4. RESET SolidArea ke default (Sangat Penting!)
                 entity.solidArea.x = entity.solidAreaDefaultX;
                 entity.solidArea.y = entity.solidAreaDefaultY;
 
                 target.solidArea.x = target.solidAreaDefaultX;
                 target.solidArea.y = target.solidAreaDefaultY;
 
-                // Jika sudah ketemu satu, langsung kembalikan (agar tidak ambil 2 item sekaligus)
                 if (foundItem != null) {
                     break;
                 }

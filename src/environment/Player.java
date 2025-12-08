@@ -149,12 +149,9 @@ public class Player extends Entity {
     }
 
     public void interact() {
-        // --- STEP 1: Cek Station/Meja (Grid Based) ---
-        // Kita tetap butuh ini karena Station adalah Tile statis, bukan Entity
         int currentWorldX = pos.x + (gp.tileSize / 2);
         int currentWorldY = pos.y + (gp.tileSize / 2);
 
-        // Project 1 kotak ke depan untuk cek meja
         int interactX = currentWorldX;
         int interactY = currentWorldY;
         switch (direction) {
@@ -173,34 +170,23 @@ public class Player extends Entity {
             targetTile = gp.tileM.tile[tileNum];
         }
 
-        // Jika depan ada Meja/Station, interaksi dengan meja dulu (Prioritas Utama)
         if (targetTile != null && targetTile instanceof IngredientStorage) {
             System.out.println("Interaksi dengan Storage");
             ((IngredientStorage) targetTile).interact(this);
-            return; // Selesai, jangan lanjut ke logika lantai
+            return;
         }
 
-        // --- STEP 2: Cek Item di Lantai (Collision Based) ---
-        // Jika tidak ada meja, baru kita cek item
-
-        // A. DROP ITEM (Jika bawa item)
         if (inventory != null) {
-            // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
-            // Menggunakan pos.x asli, bukan grid
             int itemX = pos.x + gp.itemSize / 2;
             int itemY = pos.y + gp.itemSize;
             gp.itemM.addItem(inventory, itemX, itemY);
             inventory = null;
         }
-
-        // B. PICK UP ITEM (Jika tangan kosong)
         else {
-            // Gunakan metode tabrakan solidArea
             Item foundItem = gp.itemM.getItemOnPlayer(this);
 
             if (foundItem != null) {
                 inventory = foundItem;
-                System.out.println("Mengambil " + inventory.name);
             }
         }
     }
