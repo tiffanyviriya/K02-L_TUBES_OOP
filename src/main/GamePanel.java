@@ -2,6 +2,7 @@ package main;
 
 import environment.Player;
 import tile.TileManager;
+import timer.UITimer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,8 +17,8 @@ public class GamePanel extends JPanel implements Runnable {
     public final int itemSize = 24;
     public final int maxScreenCol = 18;
     public final int maxScreenRow = 14;
-    final int screenWidth = tileSize * maxScreenCol; // 768
-    final int screenHeight = tileSize * maxScreenRow; // 576
+    public final int screenWidth = tileSize * maxScreenCol; // 768
+    public final int screenHeight = tileSize * maxScreenRow; // 576
 
     int FPS = 60;
 
@@ -32,6 +33,13 @@ public class GamePanel extends JPanel implements Runnable {
     public TileManager tileM = new TileManager(this);
     public ItemManager itemM = new ItemManager(this);
     public PlayerManager playerM = new PlayerManager(this, keyH);
+    // ----------------------------------------------------
+    // START: Deklarasi Timer Baru
+    // ----------------------------------------------------
+    public UITimer uiTimer;
+    // ----------------------------------------------------
+    // END: Deklarasi Timer Baru
+    // ----------------------------------------------------
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -41,6 +49,8 @@ public class GamePanel extends JPanel implements Runnable {
         this.setFocusable(true);
 
         gameState = playState;
+        // Inisialisasi Timer dengan waktu awal (misalnya 150 detik)
+        uiTimer = new UITimer(this, 150);
     }
 
     public void startGameThread() {
@@ -52,9 +62,18 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         double drawInterval = 1000000000/FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
+        long lastTime = System.nanoTime(); // Waktu terakhir untuk perhitungan Delta Time
 
         while(gameThread != null) {
-            update();
+            long currentTime = System.nanoTime();
+            // Delta time: Waktu yang telah berlalu sejak frame terakhir, dalam nanodetik
+            double deltaTime = (double) (currentTime - lastTime);
+            lastTime = currentTime;
+
+            if (gameState == playState) {
+                update(deltaTime); // Meneruskan deltaTime ke update
+            }
+
             repaint();
 
             try {
@@ -75,8 +94,11 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    public void update() {
+    public void update(double deltaTime) {
         playerM.update();
+
+        // Panggil update pada objek timer
+        uiTimer.update(deltaTime);
     }
 
     @Override
@@ -88,6 +110,8 @@ public class GamePanel extends JPanel implements Runnable {
         tileM.draw(g2);
         itemM.draw(g2);
         playerM.draw(g2);
+
+        uiTimer.draw(g2);
 
         g2.dispose();
     }
