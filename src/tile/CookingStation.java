@@ -30,8 +30,11 @@ public class CookingStation extends Tile implements Runnable {
 
     private void loadStationImage() {
         try {
-            // Gunakan gambar kompor
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
+            // GANTI baris ini:
+            // image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
+
+            // MENJADI arah ke file gambar baru:
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/cooking_station.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

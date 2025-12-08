@@ -29,8 +29,11 @@ public class CuttingStation extends Tile {
 
     private void loadStationImage() {
         try {
-            // Gunakan gambar sementara (OOPtile) atau gambar talenan jika ada
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
+            // GANTI baris ini:
+            // image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
+
+            // MENJADI arah ke file gambar baru:
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/cutting_station.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

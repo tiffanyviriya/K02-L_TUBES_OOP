@@ -62,11 +62,11 @@ public class TileManager {
             switch (tileType) {
                 case 0: // Floor
                     worldTiles[col][row] = new Tile(gp);
-                    setupImage(worldTiles[col][row], "/tiles/floor1.png", false);
+                    setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
                     break;
                 case 1: // Wall
                     worldTiles[col][row] = new Tile(gp);
-                    setupImage(worldTiles[col][row], "/tiles/wall1.png", true);
+                    setupImage(worldTiles[col][row], "/tiles/wall_tile.png", true);
                     break;
                 case 2: // CUTTING STATION (Misal angka 2 di map adalah cutting station)
                     worldTiles[col][row] = new CuttingStation(gp);
@@ -75,7 +75,7 @@ public class TileManager {
                 case 3: // INGREDIENT STORAGE (Misal angka 3)
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
                     break;
-                case 4: // Misal angka 4 di map adalah Cooking Station
+                case 4: // Cooking Station
                     worldTiles[col][row] = new CookingStation(gp);
                     break;
                 case 5:
@@ -83,7 +83,7 @@ public class TileManager {
                     break;
                 default: // Default floor
                     worldTiles[col][row] = new Tile(gp);
-                    setupImage(worldTiles[col][row], "/tiles/floor1.png", false);
+                    setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
                     break;
             }
 

@@ -31,20 +31,27 @@ public class Order {
     }
 
     public void draw(Graphics2D g2, int startX, int startY) {
-        int x = startX + (id * (width + 10)); // Jarak antar order
+        int x = startX + (id * (width + 10));
         int y = startY;
 
-        // 1. Gambar Background Kertas Order
-        g2.setColor(new Color(240, 240, 220)); // Warna kertas krem
+        // 1. Gambar Background Kertas (Opsional, biar kelihatan ala struk)
+        g2.setColor(new Color(240, 240, 220));
         g2.fillRect(x, y, width, height);
         g2.setColor(Color.BLACK);
         g2.drawRect(x, y, width, height);
 
-        // 2. Gambar Nama Resep (Singkat saja)
-        g2.setFont(new Font("Arial", Font.BOLD, 10));
-        g2.drawString(recipe.name, x + 5, y + 15);
+        // 2. GAMBAR SPRITE MAKANAN (PENTING)
+        if (recipe.image != null) {
+            // Gambar sprite di tengah kertas order
+            // Ukuran disesuaikan (misal 32x32 atau 40x40) agar muat di kertas
+            g2.drawImage(recipe.image, x + 10, y + 10, 40, 40, null);
+        } else {
+            // Backup jika gambar tidak ada (tulis nama saja)
+            g2.setFont(new Font("Arial", Font.BOLD, 10));
+            g2.drawString(recipe.name, x + 5, y + 30);
+        }
 
-        // 3. Gambar Timer Bar (Hijau -> Merah)
+        // 3. Gambar Timer Bar (Tetap sama)
         int barHeight = 5;
         float percentage = (float) currentTimer / maxTimer;
 
@@ -53,6 +60,7 @@ public class Order {
         else g2.setColor(Color.RED);
 
         int barWidth = (int) ((width - 10) * percentage);
+        // Posisi bar di bawah gambar
         g2.fillRect(x + 5, y + height - 10, barWidth, barHeight);
     }
 }
