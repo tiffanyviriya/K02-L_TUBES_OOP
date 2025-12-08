@@ -66,6 +66,18 @@ public class Player extends Entity {
     }
 
     public void update() {
+        // --- 1. CEK STATUS BUSY ---
+        // Jika sedang memotong, player tidak boleh bergerak.
+        if (playerState == PlayerState.BUSY) {
+            // Jika tombol interact dilepas, batalkan status BUSY (Pause memotong)
+            if (!keyH.interactPressed) {
+                playerState = PlayerState.IDLE;
+            } else {
+                // Jika tombol masih ditahan, lanjutkan interaksi (memotong)
+                interact();
+            }
+            return; // STOP, jangan jalankan kode pergerakan di bawah
+        }
 
         if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
             if (keyH.upPressed) {
@@ -112,7 +124,7 @@ public class Player extends Entity {
         }
         if (keyH.interactPressed) {
             interact();
-            keyH.interactPressed = false;
+            // keyH.interactPressed = false; (hapus ya biar tombolnya bisa dihold)
         }
         if (keyH.switchPressed) {
             gp.playerM.switchPlayer();
@@ -149,14 +161,12 @@ public class Player extends Entity {
     }
 
     public void interact() {
-        // --- STEP 1: Cek Station/Meja (Grid Based) ---
-        // Kita tetap butuh ini karena Station adalah Tile statis, bukan Entity
+        // Hitung koordinat depan player
         int currentWorldX = pos.x + (gp.tileSize / 2);
         int currentWorldY = pos.y + (gp.tileSize / 2);
-
-        // Project 1 kotak ke depan untuk cek meja
         int interactX = currentWorldX;
         int interactY = currentWorldY;
+
         switch (direction) {
             case "up": interactY -= gp.tileSize; break;
             case "down": interactY += gp.tileSize; break;
@@ -167,41 +177,49 @@ public class Player extends Entity {
         int col = interactX / gp.tileSize;
         int row = interactY / gp.tileSize;
 
+        // Ambil Tile dari TileManager (Menggunakan array objek dunia, lihat poin 3 di bawah)
         Tile targetTile = null;
         if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
-            int tileNum = gp.tileM.mapTileNum[col][row];
-            targetTile = gp.tileM.tile[tileNum];
+            // ASUMSI: Kita sudah update TileManager (lihat poin 3)
+            targetTile = gp.tileM.worldTiles[col][row];
         }
 
-        // Jika depan ada Meja/Station, interaksi dengan meja dulu (Prioritas Utama)
-        if (targetTile != null && targetTile instanceof IngredientStorage) {
-            System.out.println("Interaksi dengan Storage");
-            ((IngredientStorage) targetTile).interact(this);
-            return; // Selesai, jangan lanjut ke logika lantai
+        // --- INTERAKSI STATION ---
+
+        // 1. Cutting Station
+        if (targetTile instanceof CuttingStation) {
+            ((CuttingStation) targetTile).interact(this);
+            return;
         }
 
-        // --- STEP 2: Cek Item di Lantai (Collision Based) ---
-        // Jika tidak ada meja, baru kita cek item
-
-        // A. DROP ITEM (Jika bawa item)
-        if (inventory != null) {
-            // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
-            // Menggunakan pos.x asli, bukan grid
-            int itemX = pos.x + gp.itemSize / 2;
-            int itemY = pos.y + gp.itemSize;
-            gp.itemM.addItem(inventory, itemX, itemY);
-            inventory = null;
+        // 2. Ingredient Storage
+        if (targetTile instanceof IngredientStorage) {
+            // Storage harus "sekali tekan", bukan "tahan"
+            // Kita pakai trick sederhana: hanya jalan jika player IDLE (baru tekan)
+            // Dan kita paksa interactPressed false setelah ambil agar tidak ambil beruntun
+            if (playerState == PlayerState.IDLE) {
+                ((IngredientStorage) targetTile).interact(this);
+                keyH.interactPressed = false;
+            }
+            return;
         }
 
-        // B. PICK UP ITEM (Jika tangan kosong)
-        else {
-            // Gunakan metode tabrakan solidArea
-            Item foundItem = gp.itemM.getItemOnPlayer(this);
-
-            if (foundItem != null) {
-                inventory = foundItem;
-                System.out.println("Mengambil " + inventory.name);
+        // --- INTERAKSI LANTAI (DROP/PICKUP) ---
+        // Hanya jalankan jika belum melakukan apa-apa di frame ini
+        if (keyH.interactPressed) {
+            // Drop Logic
+            if (inventory != null) {
+                gp.itemM.addItem(inventory, pos.x + gp.itemSize/2, pos.y + gp.itemSize);
+                inventory = null;
+                keyH.interactPressed = false; // Reset agar tidak langsung pick up lagi
+            }
+            // Pick Up Logic
+            else {
+                Item foundItem = gp.itemM.getItemOnPlayer(this);
+                if (foundItem != null) {
+                    inventory = foundItem;
+                    keyH.interactPressed = false; // Reset
+                }
             }
         }
     }
-}
