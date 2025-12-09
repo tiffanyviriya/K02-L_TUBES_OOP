@@ -17,6 +17,11 @@ public abstract class KitchenUtensil extends Item implements CookingDevice {
 
     public KitchenUtensil(GamePanel gp) {
         super(gp);
+
+        solidArea = new Rectangle(0, 0, 16, 16);
+        
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
     }
 
     @Override
