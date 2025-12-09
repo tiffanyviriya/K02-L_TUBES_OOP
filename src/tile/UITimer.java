@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import main.GamePanel;
+import main.GameState;
 
 /**
  * Kelas yang menangani logika hitungan mundur (timer) dan menggambar hasilnya
@@ -46,7 +47,7 @@ public class UITimer {
             if (gameTimeSeconds <= 0) {
                 gameTimeSeconds = 0; // Pastikan tidak negatif
                 // Mengubah status game, meniru level Overcooked! selesai
-                gp.gameState = gp.pauseState;
+                gp.gameState = GameState.PAUSE;
                 System.out.println("WAKTU HABIS! LEVEL SELESAI.");
             }
         }

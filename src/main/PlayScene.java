@@ -17,5 +17,7 @@ public class PlayScene {
         gp.tileM.draw(g2);
         gp.itemM.draw(g2);
         gp.playerM.draw(g2);
+        gp.uiTimer.draw(g2);
+        gp.orderM.draw(g2);
     }
 }

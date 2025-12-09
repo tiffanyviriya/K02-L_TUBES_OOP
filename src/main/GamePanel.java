@@ -47,7 +47,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
 
-        gameState = playState;
+        gameState = GameState.PLAYING;
         // Inisialisasi Timer dengan waktu awal (misalnya 150 detik)
         uiTimer = new UITimer(this, 150);
         gameState = GameState.MAINMENU;
@@ -70,7 +70,7 @@ public class GamePanel extends JPanel implements Runnable {
             double deltaTime = (double) (currentTime - lastTime);
             lastTime = currentTime;
 
-            if (gameState == playState) {
+            if (gameState == GameState.PLAYING) {
                 update(deltaTime); // Meneruskan deltaTime ke update
             }
 
@@ -100,6 +100,8 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Panggil update pada objek timer
         uiTimer.update(deltaTime);
+    }
+
     public void update() {
         if(gameState == GameState.MAINMENU){
 
@@ -117,15 +119,9 @@ public class GamePanel extends JPanel implements Runnable {
 
         if(gameState == GameState.MAINMENU){
             mainMenuScene.draw(g2);
-        }
-        else if(gameState == GameState.PLAYING){
+        } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
         }
-
-        uiTimer.draw(g2);
-
-        orderM.draw(g2);
-
         g2.dispose();
     }
 
