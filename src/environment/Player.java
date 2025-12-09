@@ -180,6 +180,12 @@ public class Player extends Entity {
             return; // Selesai, jangan lanjut ke logika lantai
         }
 
+        else if (targetTile != null && targetTile instanceof tile.CookingStation) {
+            System.out.println("Interaksi dengan Cooking Station");
+            ((tile.CookingStation) targetTile).interact(this);
+            return;
+        }
+
         // --- STEP 2: Cek Item di Lantai (Collision Based) ---
         // Jika tidak ada meja, baru kita cek item
 
