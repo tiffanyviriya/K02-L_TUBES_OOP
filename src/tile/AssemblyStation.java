@@ -1,27 +1,20 @@
 package tile;
 
+import java.awt.*;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
+import environment.*;
 import main.GamePanel;
-import environment.Entity;
-import environment.Ingredient;
-import environment.Item;
 
-public class IngredientStorage extends Tile {
-
-    GamePanel gp;
-    String ingredientName;
+public class AssemblyStation extends Tile {
 
     public Item itemOnTop = null;
 
-    public IngredientStorage(GamePanel gp, String ingredientName) {
+    public AssemblyStation(GamePanel gp) {
         super(gp);
-        this.gp = gp;
-        this.ingredientName = ingredientName;
 
         this.collision = true;
-
         loadStorageImage();
     }
 
@@ -36,30 +29,28 @@ public class IngredientStorage extends Tile {
     public void interact(Entity player) {
 
         if (itemOnTop != null) {
-            if (player.inventory == null) {
-            if (itemOnTop instanceof Plate && player.inventory != null) {
+
+            if (itemOnTop instanceof Plate && player.inventory != null && player.inventory instanceof Preparable) {
                 ((Plate) itemOnTop).addItem((Preparable) player.inventory);
-                System.out.println("Player menaruh item di atas piring");
+                player.inventory = null;
+                System.out.println("Player menaruh bahan ke dalam piring di meja assembly.");
             }
             else if (player.inventory == null) {
-                // Player mengambil item yang ada di atas crate
                 player.inventory = itemOnTop;
                 itemOnTop = null;
-                System.out.println("Player mengambil " + player.inventory.name + " dari atas storage.");
+                System.out.println("Player mengambil " + player.inventory.name + " dari meja assembly.");
             }
             else {
-                System.out.println("Tangan penuh! Tidak bisa mengambil item.");
+                System.out.println("Tangan penuh! Tidak bisa menukar item saat ini.");
             }
         }
-        // KASUS 2: Tidak ada item di atas crate (Crate murni sebagai spawner)
         else {
             if (player.inventory == null) {
-                player.inventory = new Ingredient(gp, ingredientName);
+                System.out.println("Meja kosong.");
             } else {
                 itemOnTop = player.inventory;
                 player.inventory = null;
-                //debug
-                System.out.println("Player menaruh " + itemOnTop.name + " di atas storage " + ingredientName);
+                System.out.println("Player menaruh " + itemOnTop.name + " di meja assembly.");
             }
         }
     }
@@ -67,6 +58,7 @@ public class IngredientStorage extends Tile {
     @Override
     public void draw(Graphics2D g2, int x, int y) {
         super.draw(g2, x, y);
+
         if(itemOnTop != null){
             int offset = 8;
             int size = gp.tileSize - (offset * 2);

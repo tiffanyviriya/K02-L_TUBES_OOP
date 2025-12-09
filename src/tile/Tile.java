@@ -1,5 +1,6 @@
 package tile;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import environment.Entity;
 import main.GamePanel;

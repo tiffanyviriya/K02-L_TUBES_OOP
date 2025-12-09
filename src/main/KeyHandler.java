@@ -57,5 +57,4 @@ public class KeyHandler implements KeyListener {
             switchPressed = false;
         }
     }
-
 }

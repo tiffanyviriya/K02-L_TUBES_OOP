@@ -34,7 +34,7 @@ public class ItemManager {
     public void draw(Graphics2D g2) {
         for (Item item : itemsOnFloor) {
             if (item != null) {
-                item.draw(g2);
+                item.draw(g2, item.worldX, item.worldY);
             }
         }
     }

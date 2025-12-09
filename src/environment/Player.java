@@ -13,6 +13,7 @@ import main.PlayerState;
 import tile.CookingStation;
 import tile.IngredientStorage;
 import tile.ServingCounter;
+import tile.PlateStorage;
 import tile.Tile;
 import tile.CuttingStation;
 
@@ -138,9 +139,10 @@ public class Player extends Entity {
         g2.drawImage(image, pos.x, pos.y, gp.tileSize, gp.tileSize, null);
 
         if (inventory != null) {
-            inventory.worldX = pos.x + gp.itemSize / 2;
-            inventory.worldY = pos.y;
-            inventory.draw(g2);
+            int invX = pos.x + gp.itemSize / 2;
+            int invY = pos.y;
+
+            inventory.draw(g2, invX, invY);
         }
     }
 
@@ -210,6 +212,41 @@ public class Player extends Entity {
 
         if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
             return gp.tileM.worldTiles[col][row];
+        }
+
+        // Jika depan ada Meja/Station, interaksi dengan meja dulu (Prioritas Utama)
+        if (targetTile != null && targetTile instanceof IngredientStorage) {
+            System.out.println("Interaksi dengan Storage");
+            ((IngredientStorage) targetTile).interact(this);
+            return; // Selesai, jangan lanjut ke logika lantai
+        }
+        else if (targetTile instanceof PlateStorage) {
+            System.out.println("Interaksi dengan Storage");
+            ((PlateStorage) targetTile).interact(this);
+            return; // Selesai, jangan lanjut ke logika lantai
+        }
+
+        // --- STEP 2: Cek Item di Lantai (Collision Based) ---
+        // Jika tidak ada meja, baru kita cek item
+
+        // A. DROP ITEM (Jika bawa item)
+        if (inventory != null ) {
+            // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
+            // Menggunakan pos.x asli, bukan grid
+            int itemX = pos.x + gp.itemSize / 2;
+            int itemY = pos.y + gp.itemSize;
+            gp.itemM.addItem(inventory, itemX, itemY);
+            inventory = null;
+        }
+        // B. PICK UP ITEM (Jika tangan kosong)
+        else {
+            // Gunakan metode tabrakan solidArea
+            Item foundItem = gp.itemM.getItemOnPlayer(this);
+
+            if (foundItem != null) {
+                inventory = foundItem;
+                System.out.println("Mengambil " + inventory.name);
+            }
         }
         return null;
     }
