@@ -11,6 +11,7 @@ import main.GamePanel;
 import main.KeyHandler;
 import main.PlayerState;
 import tile.IngredientStorage;
+import tile.PlateStorage;
 import tile.Tile;
 
 import static java.lang.Math.sqrt;
@@ -179,12 +180,17 @@ public class Player extends Entity {
             ((IngredientStorage) targetTile).interact(this);
             return; // Selesai, jangan lanjut ke logika lantai
         }
+        else if (targetTile instanceof PlateStorage) {
+            System.out.println("Interaksi dengan Storage");
+            ((PlateStorage) targetTile).interact(this);
+            return; // Selesai, jangan lanjut ke logika lantai
+        }
 
         // --- STEP 2: Cek Item di Lantai (Collision Based) ---
         // Jika tidak ada meja, baru kita cek item
 
         // A. DROP ITEM (Jika bawa item)
-        if (inventory != null) {
+        if (inventory != null ) {
             // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
             // Menggunakan pos.x asli, bukan grid
             int itemX = pos.x + gp.itemSize / 2;
@@ -192,7 +198,6 @@ public class Player extends Entity {
             gp.itemM.addItem(inventory, itemX, itemY);
             inventory = null;
         }
-
         // B. PICK UP ITEM (Jika tangan kosong)
         else {
             // Gunakan metode tabrakan solidArea

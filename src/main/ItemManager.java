@@ -21,10 +21,6 @@ public class ItemManager {
         itemsOnFloor.add(item);
     }
 
-    /**
-     * Sekarang logika collision dipindahkan ke CollisionChecker.
-     * Method ini hanya bertugas memanggil checker dan menghapus item dari list jika ketemu.
-     */
     public Item getItemOnPlayer(Entity player) {
 
         // Panggil CollisionChecker untuk mengecek item

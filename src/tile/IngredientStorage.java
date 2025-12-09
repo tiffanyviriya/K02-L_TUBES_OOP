@@ -1,16 +1,14 @@
 package tile;
 
+import java.awt.*;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
+import environment.*;
 import main.GamePanel;
-import environment.Entity;
-import environment.Ingredient;
-import environment.Item;
 
 public class IngredientStorage extends Tile {
 
-    GamePanel gp;
     String ingredientName;
 
     // Sesuai PDF: "Station ini juga dapat digunakan untuk menaruh bahan"
@@ -19,7 +17,6 @@ public class IngredientStorage extends Tile {
 
     public IngredientStorage(GamePanel gp, String ingredientName) {
         super(gp);
-        this.gp = gp;
         this.ingredientName = ingredientName;
 
         this.collision = true;
@@ -39,19 +36,23 @@ public class IngredientStorage extends Tile {
 
         // KASUS 1: Ada item di atas crate (misal piring atau bahan lain yang ditaruh player sebelumnya)
         if (itemOnTop != null) {
-            if (player.inventory == null) {
+            if (itemOnTop instanceof Plate && player.inventory != null) {
+                ((Plate) itemOnTop).addItem((Preparable) player.inventory);
+                System.out.println("Player menaruh item di atas piring");
+            }
+            else if (player.inventory == null) {
                 // Player mengambil item yang ada di atas crate
                 player.inventory = itemOnTop;
                 itemOnTop = null;
                 System.out.println("Player mengambil " + player.inventory.name + " dari atas storage.");
-            } else {
+            }
+            else {
                 // Logika Plating (Advanced):
                 // Jika player bawa piring bersih & di atas crate ada bahan matang -> Gabung ke piring (Plating)
                 // Jika player bawa bahan & di atas crate ada piring -> Gabung ke piring
                 System.out.println("Tangan penuh! Tidak bisa mengambil item.");
             }
         }
-
         // KASUS 2: Tidak ada item di atas crate (Crate murni sebagai spawner)
         else {
             if (player.inventory == null) {

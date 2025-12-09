@@ -42,6 +42,8 @@ public class TileManager {
 
             tile[3] = new IngredientStorage(gp, "cucumber");
 
+            tile[4] = new PlateStorage(gp);
+
         }catch(IOException e) {
             e.printStackTrace();
         }
@@ -91,7 +93,7 @@ public class TileManager {
 
             int tileNum = mapTileNum[col][row];
 
-            g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
+            tile[tileNum].draw(g2, x, y);
             col++;
             x += gp.tileSize;
 
