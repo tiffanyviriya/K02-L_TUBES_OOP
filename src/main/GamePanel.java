@@ -75,9 +75,20 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    public void update() {
-        playerM.update();
+
+public void update() {
+    playerM.update();
+    
+    // Update logic untuk Tile (terutama Cooking Station)
+    for (int i = 0; i < maxScreenCol; i++) {
+        for (int j = 0; j < maxScreenRow; j++) {
+            int tileNum = tileM.mapTileNum[i][j];
+            if (tileM.tile[tileNum] instanceof tile.CookingStation) {
+                ((tile.CookingStation) tileM.tile[tileNum]).update();
+            }
+        }
     }
+}
 
     @Override
     public void paintComponent(Graphics g) {
