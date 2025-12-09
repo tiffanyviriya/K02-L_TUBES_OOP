@@ -23,7 +23,7 @@ public class PlateStorage extends Tile{
 
     private void loadStorageImage() {
         try {
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/plate_storage.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/plate-storage.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -20,7 +20,7 @@ public class AssemblyStation extends Tile {
 
     private void loadStorageImage() {
         try {
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/assembly-horizontal.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -53,17 +53,6 @@ public class AssemblyStation extends Tile {
                 System.out.println("Player menaruh " + itemOnTop.name + " di meja assembly.");
             }
         }
-    }
 
-    @Override
-    public void draw(Graphics2D g2, int x, int y) {
-        super.draw(g2, x, y);
-
-        if(itemOnTop != null){
-            int offset = 8;
-            int size = gp.tileSize - (offset * 2);
-
-            itemOnTop.draw(g2, x + offset, y + offset);
-        }
     }
 }

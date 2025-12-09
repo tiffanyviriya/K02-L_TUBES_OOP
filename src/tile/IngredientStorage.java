@@ -3,10 +3,8 @@ package tile;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
+import environment.*;
 import main.GamePanel;
-import environment.Entity;
-import environment.Ingredient;
-import environment.Item;
 
 public class IngredientStorage extends Tile {
 
@@ -27,51 +25,41 @@ public class IngredientStorage extends Tile {
 
     private void loadStorageImage() {
         try {
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/storage-sementara.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    @Override
     public void interact(Entity player) {
-
+        // KASUS 1: Ada item di atas Storage (Berperilaku seperti meja)
         if (itemOnTop != null) {
+            // Jika tangan player kosong, AMBIL item dari atas storage
             if (player.inventory == null) {
-            if (itemOnTop instanceof Plate && player.inventory != null) {
-                ((Plate) itemOnTop).addItem((Preparable) player.inventory);
-                System.out.println("Player menaruh item di atas piring");
-            }
-            else if (player.inventory == null) {
-                // Player mengambil item yang ada di atas crate
                 player.inventory = itemOnTop;
                 itemOnTop = null;
                 System.out.println("Player mengambil " + player.inventory.name + " dari atas storage.");
             }
+            // Jika player membawa piring dan di atas storage ada makanan (opsional logic)
+            // ... (bisa ditambahkan nanti)
             else {
                 System.out.println("Tangan penuh! Tidak bisa mengambil item.");
             }
         }
-        // KASUS 2: Tidak ada item di atas crate (Crate murni sebagai spawner)
+        // KASUS 2: Storage KOSONG (Berperilaku sebagai Spawner)
         else {
+            // Jika tangan player kosong -> SPAWN Bahan Baru
             if (player.inventory == null) {
                 player.inventory = new Ingredient(gp, ingredientName);
-            } else {
+                System.out.println("Player mengambil " + ingredientName + " baru.");
+            }
+            // Jika tangan player ada item -> TARUH item tersebut di atas storage
+            else {
                 itemOnTop = player.inventory;
                 player.inventory = null;
-                //debug
-                System.out.println("Player menaruh " + itemOnTop.name + " di atas storage " + ingredientName);
+                System.out.println("Player menaruh " + itemOnTop.name + " di atas storage.");
             }
-        }
-    }
-
-    @Override
-    public void draw(Graphics2D g2, int x, int y) {
-        super.draw(g2, x, y);
-        if(itemOnTop != null){
-            int offset = 8;
-            int size = gp.tileSize - (offset * 2);
-
-            itemOnTop.draw(g2, x + offset, y + offset);
         }
     }
 }

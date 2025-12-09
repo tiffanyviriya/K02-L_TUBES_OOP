@@ -10,12 +10,7 @@ import javax.imageio.ImageIO;
 import main.GamePanel;
 import main.KeyHandler;
 import main.PlayerState;
-import tile.CookingStation;
-import tile.IngredientStorage;
-import tile.ServingCounter;
-import tile.PlateStorage;
-import tile.Tile;
-import tile.CuttingStation;
+import tile.*;
 
 public class Player extends Entity {
 
@@ -158,10 +153,8 @@ public class Player extends Entity {
         }
         // 2. Ingredient Storage
         else if (targetTile instanceof IngredientStorage) {
-            // Hanya bisa ambil jika player sedang IDLE (mencegah ambil beruntun saat tahan V)
-            if (playerState == PlayerState.IDLE) {
-                ((IngredientStorage) targetTile).interact(this);
-            }
+            System.out.println("Interaksi dengan Ingredient Storage");
+            ((IngredientStorage) targetTile).interact(this);
         }
         // 3. Serving Counter
         else if (targetTile instanceof ServingCounter) {
@@ -169,7 +162,16 @@ public class Player extends Entity {
         }
         // 4. Cooking Station (Jika ada)
         else if (targetTile instanceof CookingStation) {
+            System.out.println("Interaksi dengan Cook");
             ((CookingStation) targetTile).interact(this);
+        }
+        else if (targetTile instanceof PlateStorage) {
+            System.out.println("Interaksi dengan Storage");
+            ((PlateStorage) targetTile).interact(this);
+        }
+        else if (targetTile instanceof AssemblyStation) {
+            System.out.println("Interaksi dengan Assembly Station");
+            ((AssemblyStation) targetTile).interact(this);
         }
     }
 
@@ -214,17 +216,6 @@ public class Player extends Entity {
             return gp.tileM.worldTiles[col][row];
         }
 
-        // Jika depan ada Meja/Station, interaksi dengan meja dulu (Prioritas Utama)
-        if (targetTile != null && targetTile instanceof IngredientStorage) {
-            System.out.println("Interaksi dengan Storage");
-            ((IngredientStorage) targetTile).interact(this);
-            return; // Selesai, jangan lanjut ke logika lantai
-        }
-        else if (targetTile instanceof PlateStorage) {
-            System.out.println("Interaksi dengan Storage");
-            ((PlateStorage) targetTile).interact(this);
-            return; // Selesai, jangan lanjut ke logika lantai
-        }
 
         // --- STEP 2: Cek Item di Lantai (Collision Based) ---
         // Jika tidak ada meja, baru kita cek item

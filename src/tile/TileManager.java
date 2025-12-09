@@ -84,6 +84,12 @@ public class TileManager {
                 case 5:
                     worldTiles[col][row] = new ServingCounter(gp);
                     break;
+                case 6:
+                    worldTiles[col][row] = new PlateStorage(gp);
+                    break;
+                case 7:
+                    worldTiles[col][row] = new AssemblyStation(gp);
+                    break;
                 default: // Default floor
                     worldTiles[col][row] = new Tile(gp);
                     setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
