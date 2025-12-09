@@ -32,6 +32,7 @@ public class GamePanel extends JPanel implements Runnable {
     public TileManager tileM = new TileManager(this);
     public ItemManager itemM = new ItemManager(this);
     public PlayerManager playerM = new PlayerManager(this, keyH);
+    public AssetSetter aSetter = new AssetSetter(this);
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -41,6 +42,10 @@ public class GamePanel extends JPanel implements Runnable {
         this.setFocusable(true);
 
         gameState = playState;
+    }
+
+    public void setupGame() {
+        aSetter.setObject();
     }
 
     public void startGameThread() {
