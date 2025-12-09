@@ -18,15 +18,15 @@ public class AssetSetter {
         
         // Spawn Boiling Pot 1
         BoilingPot pot1 = new BoilingPot(gp);
-        gp.itemM.addItem(pot1, 10 * gp.tileSize, 0 * gp.tileSize); 
+        gp.itemM.addItem(pot1, 11 * gp.tileSize, 3 * gp.tileSize); 
 
         // Spawn Boiling Pot 2
         BoilingPot pot2 = new BoilingPot(gp);
-        gp.itemM.addItem(pot2, 11 * gp.tileSize, 0 * gp.tileSize);
+        gp.itemM.addItem(pot2, 12 * gp.tileSize, 3 * gp.tileSize);
 
         // Spawn Frying Pan
         FryingPan pan1 = new FryingPan(gp);
-        gp.itemM.addItem(pan1, 12 * gp.tileSize, 0 * gp.tileSize);
+        gp.itemM.addItem(pan1, 13 * gp.tileSize, 3 * gp.tileSize);
         
         // --- NOTE POSISI ---
         // Sesuaikan angka 10, 11, 12 dengan koordinat 'R' (Cooking Station) 
