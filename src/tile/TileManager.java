@@ -126,6 +126,14 @@ public class TileManager {
             if (currentTile instanceof CuttingStation) {
                 ((CuttingStation)currentTile).draw(g2, x, y);
             }
+            else if (currentTile instanceof CookingStation) {
+                ((CookingStation)currentTile).draw(g2, x, y);
+            }
+            // 3. TAMBAHKAN INI: Cek Assembly Station
+            else if (currentTile instanceof AssemblyStation) {
+                ((AssemblyStation)currentTile).draw(g2, x, y);
+            }
+            // 4. Default Tile (Lantai/Tembok biasa)
             else if (currentTile != null && currentTile.image != null) {
                 g2.drawImage(currentTile.image, x, y, gp.tileSize, gp.tileSize, null);
             }
