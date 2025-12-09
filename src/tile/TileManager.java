@@ -91,11 +91,29 @@ public class TileManager {
         while(col < gp.maxScreenCol && row < gp.maxScreenRow ) {
 
             int tileNum = mapTileNum[col][row];
-if (tile[tileNum] instanceof CookingStation) {
-    ((CookingStation)tile[tileNum]).draw(g2, x, y);
-} else {
-    g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
-}
+
+            // --- LOGIKA GAMBAR (JANGAN SAMPAI MENGHAPUS LOGIKA DI BAWAHNYA) ---
+            if (tile[tileNum] != null) {
+                if (tile[tileNum] instanceof CookingStation) {
+                     ((CookingStation)tile[tileNum]).draw(g2, x, y);
+                } 
+                else {
+                    g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
+                }
+            }
+            
+            // --- BAGIAN INI SANGAT PENTING (JANGAN DIHAPUS) ---
+            // Kalau ini hilang, 'col' tidak nambah -> infinite loop -> layar putih
+            col++;
+            x += gp.tileSize;
+
+            if(col == gp.maxScreenCol) {
+                col = 0;
+                x = 0;
+                row++;
+                y += gp.tileSize;
+            }
         }
     }
 }
+
