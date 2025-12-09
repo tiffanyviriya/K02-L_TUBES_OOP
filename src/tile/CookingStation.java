@@ -34,7 +34,7 @@ public class CookingStation extends Tile implements Runnable {
             // image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
 
             // MENJADI arah ke file gambar baru:
-            image = ImageIO.read(getClass().getResourceAsStream("/stations/cooking_station.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/cooking_station(d).png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
