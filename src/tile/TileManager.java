@@ -81,6 +81,9 @@ public class TileManager {
                 case 5:
                     worldTiles[col][row] = new ServingCounter(gp);
                     break;
+                case 6: // Jika angka 10 ada di map file, itu adalah Trash Station
+                    worldTiles[col][row] = new TrashStation(gp);
+                    break;
                 default: // Default floor
                     worldTiles[col][row] = new Tile(gp);
                     setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);

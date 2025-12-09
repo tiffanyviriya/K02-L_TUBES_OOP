@@ -10,10 +10,7 @@ import javax.imageio.ImageIO;
 import main.GamePanel;
 import main.KeyHandler;
 import main.PlayerState;
-import tile.IngredientStorage;
-import tile.Tile;
-import tile.CuttingStation; // Tambahkan baris ini
-import tile.ServingCounter; // Tambahkan ini juga jaga-jaga
+import tile.*;
 
 import static java.lang.Math.sqrt;
 
@@ -201,6 +198,18 @@ public class Player extends Entity {
             // Dan kita paksa interactPressed false setelah ambil agar tidak ambil beruntun
             if (playerState == PlayerState.IDLE) {
                 ((IngredientStorage) targetTile).interact(this);
+                keyH.interactPressed = false;
+            }
+            return;
+        }
+
+        // 3. Trash Station
+        if (targetTile instanceof TrashStation) {
+            // Storage harus "sekali tekan", bukan "tahan"
+            // Kita pakai trick sederhana: hanya jalan jika player IDLE (baru tekan)
+            // Dan kita paksa interactPressed false setelah ambil agar tidak ambil beruntun
+            if (playerState == PlayerState.IDLE) {
+                ((TrashStation) targetTile).interact(this);
                 keyH.interactPressed = false;
             }
             return;
