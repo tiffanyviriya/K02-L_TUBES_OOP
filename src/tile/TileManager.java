@@ -41,6 +41,7 @@ public class TileManager {
             tile[2].collision = true;
 
             tile[3] = new IngredientStorage(gp, "cucumber");
+            tile[4] = new CookingStation(gp);
 
         }catch(IOException e) {
             e.printStackTrace();
@@ -90,17 +91,11 @@ public class TileManager {
         while(col < gp.maxScreenCol && row < gp.maxScreenRow ) {
 
             int tileNum = mapTileNum[col][row];
-
-            g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
-            col++;
-            x += gp.tileSize;
-
-            if(col == gp.maxScreenCol) {
-                col = 0;
-                x = 0;
-                row++;
-                y += gp.tileSize;
-            }
+if (tile[tileNum] instanceof CookingStation) {
+    ((CookingStation)tile[tileNum]).draw(g2, x, y);
+} else {
+    g2.drawImage(tile[tileNum].image, x, y, gp.tileSize, gp.tileSize, null);
+}
         }
     }
 }
