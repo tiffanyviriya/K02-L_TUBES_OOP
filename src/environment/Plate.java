@@ -37,12 +37,14 @@ public class Plate extends Item{
         itemOnPlate.add(preparable);
     }
 
-    @Override
-    public void draw(Graphics2D g2){
-        super.draw(g2);
+    public void draw(Graphics2D g2, int x, int y){
+        super.draw(g2, x,y);
         for(Preparable p : itemOnPlate){
             Item preparables = (Item) p;
-            preparables.draw(g2);
+            int offset = 8;
+            int size = gp.tileSize - (offset * 2);
+
+            g2.drawImage(preparables.image, x, y, gp.itemSize, gp.itemSize, null);
         }
     }
 }

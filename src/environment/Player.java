@@ -142,10 +142,10 @@ public class Player extends Entity {
         g2.drawImage(image, pos.x, pos.y, gp.tileSize, gp.tileSize, null);
 
         if (inventory != null) {
-            inventory.worldX = pos.x + gp.itemSize / 2;
-            inventory.worldY = pos.y;
+            int invX = pos.x + gp.itemSize / 2;
+            int invY = pos.y;
 
-            inventory.draw(g2);
+            inventory.draw(g2, invX, invY);
         }
     }
 

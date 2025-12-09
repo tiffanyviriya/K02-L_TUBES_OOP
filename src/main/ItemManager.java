@@ -31,13 +31,13 @@ public class ItemManager {
             itemsOnFloor.remove(item); // Hapus dari lantai
         }
 
-        return item; // Kembalikan ke player
+        return item;
     }
 
     public void draw(Graphics2D g2) {
         for (Item item : itemsOnFloor) {
             if (item != null) {
-                item.draw(g2);
+                item.draw(g2, item.worldX, item.worldY);
             }
         }
     }

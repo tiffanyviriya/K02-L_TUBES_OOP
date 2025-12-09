@@ -11,8 +11,6 @@ public class IngredientStorage extends Tile {
 
     String ingredientName;
 
-    // Sesuai PDF: "Station ini juga dapat digunakan untuk menaruh bahan"
-    // Jadi kita butuh variabel untuk menyimpan item yang ditaruh di atas crate
     public Item itemOnTop = null;
 
     public IngredientStorage(GamePanel gp, String ingredientName) {
@@ -47,9 +45,6 @@ public class IngredientStorage extends Tile {
                 System.out.println("Player mengambil " + player.inventory.name + " dari atas storage.");
             }
             else {
-                // Logika Plating (Advanced):
-                // Jika player bawa piring bersih & di atas crate ada bahan matang -> Gabung ke piring (Plating)
-                // Jika player bawa bahan & di atas crate ada piring -> Gabung ke piring
                 System.out.println("Tangan penuh! Tidak bisa mengambil item.");
             }
         }
@@ -66,6 +61,17 @@ public class IngredientStorage extends Tile {
                 player.inventory = null; // Kosongkan tangan player
                 System.out.println("Player menaruh " + itemOnTop.name + " di atas storage " + ingredientName);
             }
+        }
+    }
+
+    @Override
+    public void draw(Graphics2D g2, int x, int y) {
+        super.draw(g2, x, y);
+        if(itemOnTop != null){
+            int offset = 8;
+            int size = gp.tileSize - (offset * 2);
+
+            itemOnTop.draw(g2, x + offset, y + offset);
         }
     }
 }
