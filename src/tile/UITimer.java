@@ -1,4 +1,4 @@
-package timer;
+package tile;
 
 import java.awt.Color;
 import java.awt.Font;

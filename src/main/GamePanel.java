@@ -1,12 +1,10 @@
 package main;
 
-import environment.Player;
 import tile.TileManager;
-import timer.UITimer;
+import tile.UITimer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
 public class GamePanel extends JPanel implements Runnable {
 
