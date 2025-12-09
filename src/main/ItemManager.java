@@ -21,21 +21,14 @@ public class ItemManager {
         itemsOnFloor.add(item);
     }
 
-    /**
-     * Sekarang logika collision dipindahkan ke CollisionChecker.
-     * Method ini hanya bertugas memanggil checker dan menghapus item dari list jika ketemu.
-     */
     public Item getItemOnPlayer(Entity player) {
-
-        // Panggil CollisionChecker untuk mengecek item
         Item item = gp.cChecker.checkItem(player);
 
-        // Jika CollisionChecker menemukan item yang bersentuhan
         if (item != null) {
-            itemsOnFloor.remove(item); // Hapus dari lantai
+            itemsOnFloor.remove(item);
         }
 
-        return item; // Kembalikan ke player
+        return item;
     }
 
     public void draw(Graphics2D g2) {

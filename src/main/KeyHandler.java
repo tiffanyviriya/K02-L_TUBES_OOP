@@ -20,7 +20,7 @@ public class KeyHandler implements KeyListener {
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
 
-        if(gp.gameState == gp.playState) {
+        if(gp.gameState == GameState.PLAYING) {
             if(code == KeyEvent.VK_W) { upPressed = true; }
             if(code == KeyEvent.VK_S) { downPressed = true; }
             if(code == KeyEvent.VK_A) { leftPressed = true; }

@@ -20,9 +20,9 @@ public class GamePanel extends JPanel implements Runnable {
 
     int FPS = 60;
 
-    public int gameState;
-    public final int playState = 1;
-    public final int pauseState = 2;
+    public GameState gameState;
+    PlayScene playScene = new PlayScene(this);
+    MainMenuScene mainMenuScene = new MainMenuScene(this);
 
     Thread gameThread;
     public KeyHandler keyH = new KeyHandler(this);
@@ -50,6 +50,7 @@ public class GamePanel extends JPanel implements Runnable {
         gameState = playState;
         // Inisialisasi Timer dengan waktu awal (misalnya 150 detik)
         uiTimer = new UITimer(this, 150);
+        gameState = GameState.MAINMENU;
     }
 
     public void startGameThread() {
@@ -99,6 +100,13 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Panggil update pada objek timer
         uiTimer.update(deltaTime);
+    public void update() {
+        if(gameState == GameState.MAINMENU){
+
+        }
+        else if (gameState == GameState.PLAYING){
+            playScene.update();
+        }
     }
 
     @Override
@@ -107,9 +115,12 @@ public class GamePanel extends JPanel implements Runnable {
 
         Graphics2D g2 = (Graphics2D) g;
 
-        tileM.draw(g2);
-        itemM.draw(g2);
-        playerM.draw(g2);
+        if(gameState == GameState.MAINMENU){
+            mainMenuScene.draw(g2);
+        }
+        else if(gameState == GameState.PLAYING){
+            playScene.draw(g2);
+        }
 
         uiTimer.draw(g2);
 

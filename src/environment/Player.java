@@ -126,7 +126,7 @@ public class Player extends Entity {
         }
         if (keyH.interactPressed) {
             interact();
-            // keyH.interactPressed = false; (hapus ya biar tombolnya bisa dihold)
+            keyH.interactPressed = false;
         }
         if (keyH.switchPressed) {
             gp.playerM.switchPlayer();
@@ -166,6 +166,7 @@ public class Player extends Entity {
         // Hitung koordinat depan player
         int currentWorldX = pos.x + (gp.tileSize / 2);
         int currentWorldY = pos.y + (gp.tileSize / 2);
+
         int interactX = currentWorldX;
         int interactY = currentWorldY;
 
@@ -208,6 +209,7 @@ public class Player extends Entity {
 
         // --- INTERAKSI LANTAI (DROP/PICKUP) ---
         // Hanya jalankan jika belum melakukan apa-apa di frame ini
+        // change key to V jangan lupa
         if (keyH.interactPressed) {
             // Drop Logic
             if (inventory != null) {
