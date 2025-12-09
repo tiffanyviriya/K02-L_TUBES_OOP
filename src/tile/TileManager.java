@@ -36,9 +36,7 @@ public class TileManager {
             tile[1].image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
             tile[1].collision = true;
 
-            tile[2] = new Tile(gp);
-            tile[2].image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
-            tile[2].collision = true;
+            tile[2] = new AssemblyStation(gp);
 
             tile[3] = new IngredientStorage(gp, "cucumber");
 

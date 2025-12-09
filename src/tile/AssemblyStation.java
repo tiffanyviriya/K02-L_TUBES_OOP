@@ -20,7 +20,7 @@ public class AssemblyStation extends Tile {
 
     private void loadStorageImage() {
         try {
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/table.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
         } catch (Exception e) {
             e.printStackTrace();
         }
