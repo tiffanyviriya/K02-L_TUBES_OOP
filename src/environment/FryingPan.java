@@ -11,7 +11,7 @@ public class FryingPan extends KitchenUtensil {
         name = "Frying Pan";
         try {
              // Pastikan kamu punya gambar ini atau ganti pathnya
-            image = ImageIO.read(getClass().getResourceAsStream("/kitchen/pan.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/tiles/floor1.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

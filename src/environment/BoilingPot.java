@@ -11,7 +11,7 @@ public class BoilingPot extends KitchenUtensil {
         name = "Boiling Pot";
         try {
             // Pastikan kamu punya gambar ini atau ganti pathnya
-            image = ImageIO.read(getClass().getResourceAsStream("/kitchen/pot.png")); 
+            image = ImageIO.read(getClass().getResourceAsStream("/tiles/floor1.png")); 
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -82,6 +82,7 @@ public class GamePanel extends JPanel implements Runnable {
 
 
 public void update() {
+    System.out.println("Game loop running");
     playerM.update();
     
     // Update logic untuk Tile (terutama Cooking Station)
