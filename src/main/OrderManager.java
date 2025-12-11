@@ -20,7 +20,7 @@ public class OrderManager {
     public int score = 0;
     public int failedOrders = 0;
 
-    // Timer spawn (agar tidak spawn instan di detik ke-0 jika mau delay)
+    // Timer spawn
     private int spawnTimer = 0;
 
     public OrderManager(GamePanel gp) {
@@ -28,32 +28,28 @@ public class OrderManager {
         setupRecipes(); // Load resep sesuai level
     }
 
-    // Definisikan resep-resep di sini (Sesuaikan dengan Map Type)
+    // Definisikan resep-resep di sini
     private void setupRecipes() {
-        // CONTOH: Setup resep untuk Map Type A (Sushi)
-        // 1. Kappa Maki: Nori (Raw) + Nasi (Cooked) + Timun (Chopped)
+        // 1. Kappa Maki
         Recipe kappaMaki = new Recipe("Kappa Maki", 120, 60);
         kappaMaki.addIngredient("nori", IngredientState.RAW);
         kappaMaki.addIngredient("rice", IngredientState.COOKED);
         kappaMaki.addIngredient("cucumber", IngredientState.CHOPPED);
 
-        // 2. Sakana Maki: Nori + Nasi + Ikan
+        // 2. Sakana Maki
         Recipe sakanaMaki = new Recipe("Sakana Maki", 150, 60);
         sakanaMaki.addIngredient("nori", IngredientState.RAW);
         sakanaMaki.addIngredient("rice", IngredientState.COOKED);
-        sakanaMaki.addIngredient("fish", IngredientState.RAW);
+        sakanaMaki.addIngredient("fish", IngredientState.RAW); // Sesuai spec map A
 
         // Masukkan ke daftar kemungkinan resep
         levelRecipes.add(kappaMaki);
         levelRecipes.add(sakanaMaki);
-
-        // Tambahkan resep lain sesuai spec...
     }
 
     public void update() {
         // 1. Spawn Order Baru jika slot kosong
         if (activeOrders.size() < MAX_ORDERS) {
-            // Bisa tambah delay spawnTimer di sini jika ingin ada jeda antar order
             spawnOrder();
         }
 
@@ -69,8 +65,6 @@ public class OrderManager {
                 score -= 50; // Penalty sesuai spec
                 failedOrders++;
                 iterator.remove(); // Hapus order
-
-                // Re-index ID order agar visualnya geser rapi (Opsional)
                 reindexOrders();
             }
         }
@@ -78,6 +72,11 @@ public class OrderManager {
 
     private void spawnOrder() {
         if (levelRecipes.isEmpty()) return;
+
+        // Cegah spawn terlalu cepat (opsional logic, di sini simple saja)
+        spawnTimer++;
+        if (spawnTimer < 100) return; // Delay spawn
+        spawnTimer = 0;
 
         // Pilih resep random
         Random rand = new Random();
@@ -103,29 +102,29 @@ public class OrderManager {
     // Dipanggil saat Player menaruh piring di Serving Counter
     public boolean checkServing(Item servedItem) {
 
-        // 1. Validasi apakah item adalah Piring/Dish yang valid
-        // (Asumsi: Anda punya class Dish atau Item container yang punya list ingredients)
-        // Di sini saya asumsikan servedItem punya method/list getIngredients()
-
         if (servedItem == null) return false;
 
-        // Konversi isi piring player menjadi List String untuk dibandingkan
-        // Contoh: ["nori_RAW", "rice_COOKED", "fish_RAW"]
         ArrayList<String> plateContents = new ArrayList<>();
 
-        // TODO: Sesuaikan dengan struktur class Item/Dish Anda.
-        // Misal item tersebut adalah Plate yang punya list ingredients:
-        if (servedItem instanceof KitchenUtensil) { // Atau class Plate
-            KitchenUtensil plate = (KitchenUtensil) servedItem;
-            for (Ingredient ing : plate.ingredients) {
-                plateContents.add(ing.name + "_" + ing.state);
+        // 1. Validasi apakah item adalah Piring (Plate)
+        if (servedItem instanceof Plate) {
+            Plate plate = (Plate) servedItem;
+            // Ambil semua bahan di atas piring
+            for (environment.Preparable p : plate.itemOnPlate) {
+                // Casting ke Ingredient untuk ambil nama & state
+                if (p instanceof Ingredient) {
+                    Ingredient ing = (Ingredient) p;
+                    // Format: "nama_STATE" (contoh: "fish_RAW")
+                    plateContents.add(ing.name + "_" + ing.state);
+                }
             }
-        } else {
-            return false; // Bukan makanan valid
+        }
+        else {
+            // Jika bukan piring, serving gagal (tidak bisa serve panci langsung)
+            return false;
         }
 
-        // 2. Cek Order (FIFO - Dari index 0 ke belakang)
-        // Spec: "Jika ada dua order yang sama, selesaikan yang paling awal masuk."
+        // 2. Cek Order (FIFO)
         for (int i = 0; i < activeOrders.size(); i++) {
             Order order = activeOrders.get(i);
 
@@ -147,7 +146,7 @@ public class OrderManager {
             }
         }
 
-        // Jika sampai sini, berarti makanan salah (Penalty)
+        // Jika sampai sini, berarti tidak ada order yang cocok (Penalty)
         System.out.println("Makanan Salah! Penalti -50");
         score -= 50;
         return false;
@@ -155,14 +154,15 @@ public class OrderManager {
 
     // Helper untuk membandingkan isi piring vs resep
     private boolean isRecipeMatch(Recipe recipe, ArrayList<String> plateContents) {
+        // Jumlah bahan harus sama
         if (recipe.requiredIngredients.size() != plateContents.size()) {
             return false;
         }
 
-        // Cek apakah semua bahan resep ada di piring
-        // Kita gunakan copy list agar tidak merusak data asli saat remove
+        // Gunakan copy list agar aman
         ArrayList<String> tempPlate = new ArrayList<>(plateContents);
 
+        // Cek setiap bahan yang dibutuhkan resep
         for (String req : recipe.requiredIngredients) {
             if (tempPlate.contains(req)) {
                 tempPlate.remove(req); // Hapus biar kalau ada bahan double terhandle
@@ -177,7 +177,7 @@ public class OrderManager {
     public void draw(Graphics2D g2) {
         // Gambar UI Order di bagian atas layar
         for (Order order : activeOrders) {
-            order.draw(g2, 20, 10); // Koordinat X: 20, Y: 10
+            order.draw(g2, 20, 10);
         }
 
         // Gambar Score

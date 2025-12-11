@@ -144,17 +144,24 @@ private void placeUtensilOnStation(int col, int row, String utensilName) {
     }
 
     // Di class TileManager
-public void update() {
-    for (int col = 0; col < gp.maxScreenCol; col++) {
-        for (int row = 0; row < gp.maxScreenRow; row++) {
-            
-            // Jika tile tersebut adalah CookingStation, panggil update()-nya
-            if (worldTiles[col][row] instanceof CookingStation) {
-                ((CookingStation) worldTiles[col][row]).update();
+    public void update() {
+        for (int col = 0; col < gp.maxScreenCol; col++) {
+            for (int row = 0; row < gp.maxScreenRow; row++) {
+
+                Tile currentTile = worldTiles[col][row];
+
+                // Update Cooking Station (logic masak)
+                if (currentTile instanceof CookingStation) {
+                    ((CookingStation) currentTile).update();
+                }
+
+                // [TAMBAHAN BARU] Update Serving Counter (logic timer piring kembali)
+                else if (currentTile instanceof ServingCounter) {
+                    ((ServingCounter) currentTile).update();
+                }
             }
         }
     }
-}
 
     public void draw(Graphics2D g2) {
         int col = 0;
@@ -176,6 +183,13 @@ public void update() {
             // 3. TAMBAHKAN INI: Cek Assembly Station
             else if (currentTile instanceof AssemblyStation) {
                 ((AssemblyStation)currentTile).draw(g2, x, y);
+            }
+            else if (currentTile instanceof PlateStorage) {
+                ((PlateStorage)currentTile).draw(g2, x, y);
+            }
+
+            else if (currentTile instanceof ServingCounter) {
+                ((ServingCounter)currentTile).draw(g2, x, y);
             }
             // 4. Default Tile (Lantai/Tembok biasa)
             else if (currentTile != null && currentTile.image != null) {
