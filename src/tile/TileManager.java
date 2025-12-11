@@ -112,6 +112,19 @@ public class TileManager {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    // Di class TileManager
+public void update() {
+    for (int col = 0; col < gp.maxScreenCol; col++) {
+        for (int row = 0; row < gp.maxScreenRow; row++) {
+            
+            // Jika tile tersebut adalah CookingStation, panggil update()-nya
+            if (worldTiles[col][row] instanceof CookingStation) {
+                ((CookingStation) worldTiles[col][row]).update();
+            }
+        }
+    }
+}
+
     public void draw(Graphics2D g2) {
         int col = 0;
         int row = 0;
