@@ -5,6 +5,8 @@ import tile.UITimer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class GamePanel extends JPanel implements Runnable {
 
@@ -25,6 +27,7 @@ public class GamePanel extends JPanel implements Runnable {
     MainMenuScene mainMenuScene = new MainMenuScene(this);
 
     Thread gameThread;
+    public ScheduledExecutorService globalExecutor = Executors.newScheduledThreadPool(4);
     public KeyHandler keyH = new KeyHandler(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
 
@@ -91,6 +94,14 @@ public class GamePanel extends JPanel implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void stopGame() {
+        gameThread = null;
+        if (globalExecutor != null && !globalExecutor.isShutdown()) {
+            globalExecutor.shutdownNow();
+            System.out.println("Global Executor stopped.");
         }
     }
 

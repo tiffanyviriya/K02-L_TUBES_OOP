@@ -73,7 +73,6 @@ public class TileManager {
                     break;
                 case 2: // CUTTING STATION (Misal angka 2 di map adalah cutting station)
                     worldTiles[col][row] = new CuttingStation(gp);
-                    // Gambar diload di constructor CuttingStation
                     break;
                 case 3: // INGREDIENT STORAGE (Misal angka 3)
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
@@ -89,6 +88,12 @@ public class TileManager {
                     break;
                 case 7:
                     worldTiles[col][row] = new AssemblyStation(gp);
+                    break;
+                case 8:
+                    worldTiles[col][row] = new WashingStation(gp, col, row);
+                    break;
+                case 9:
+                    worldTiles[col][row] = new WashingCounter(gp);
                     break;
                 default: // Default floor
                     worldTiles[col][row] = new Tile(gp);
@@ -132,6 +137,12 @@ public class TileManager {
             // 3. TAMBAHKAN INI: Cek Assembly Station
             else if (currentTile instanceof AssemblyStation) {
                 ((AssemblyStation)currentTile).draw(g2, x, y);
+            }
+            else if (currentTile instanceof WashingStation) {
+                ((WashingStation)currentTile).draw(g2, x, y);
+            }
+            else if (currentTile instanceof WashingCounter) {
+                ((WashingCounter)currentTile).draw(g2, x, y);
             }
             // 4. Default Tile (Lantai/Tembok biasa)
             else if (currentTile != null && currentTile.image != null) {

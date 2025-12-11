@@ -173,6 +173,16 @@ public class Player extends Entity {
             System.out.println("Interaksi dengan Assembly Station");
             ((AssemblyStation) targetTile).interact(this);
         }
+        else if (targetTile instanceof WashingStation) {
+            System.out.println("Interaksi dengan Washing Station");
+            ((WashingStation) targetTile).interact(this);
+            playerState = PlayerState.BUSY;
+            gp.playerM.switchPlayer();
+        }
+        else if (targetTile instanceof WashingCounter) {
+            System.out.println("Interaksi dengan Washing Counter");
+            ((WashingCounter) targetTile).interact(this);
+        }
     }
 
     // --- METHOD INTERAKSI KHUSUS LANTAI (Key C) ---
