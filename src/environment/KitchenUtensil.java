@@ -1,125 +1,155 @@
 package environment;
 
 import main.GamePanel;
-import java.awt.*;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 public class KitchenUtensil extends Item {
 
-    // Bahan-bahan di dalam panci
     public ArrayList<Ingredient> ingredients = new ArrayList<>();
     
-    // Status Memasak
+    // Progress Memasak
     public int cookingProgress = 0;
-    public final int TIME_TO_COOK = 300; // 5 Detik (60 FPS * 5)
-    public final int TIME_TO_BURN = 600; // 10 Detik gosong
+    public final int TIME_TO_COOK = 300; 
+    public final int TIME_TO_BURN = 600; 
     
     public boolean isCooked = false;
     public boolean isBurned = false;
 
+    // Cache Gambar agar tidak load berulang kali
+    private BufferedImage imgPanEmpty, imgPanShrimp;
+    private BufferedImage imgPotEmpty, imgPotRice;
+
     public KitchenUtensil(GamePanel gp, String name) {
         super(gp);
         this.name = name;
-        this.collision = true; // Bisa ditabrak/diambil
-        loadUtensilImage();
+        this.collision = true;
+        
+        loadAllImages(); // Load semua kemungkinan gambar di awal
+        updateLook();    // Set gambar awal
     }
 
-    private void loadUtensilImage() {
+    private void loadAllImages() {
         try {
-            // LOGIKA BARU: Load gambar sesuai nama (Pot atau Pan)
-            // Pastikan path ini sesuai dengan struktur folder 'res' kamu
-            if (name.equalsIgnoreCase("Pan")) {
-                image = ImageIO.read(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Utensils/Frying_Pan.png"));
-            } else {
-                // Default ke Pot
-                image = ImageIO.read(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Utensils/Boiling_Pot.png"));
-            }
-        } catch (Exception e) {
+            // Load Gambar Wajan
+            imgPanEmpty = ImageIO.read(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Utensils/Frying_Pan.png"));
+            imgPanShrimp = ImageIO.read(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Utensils/Frying_Pan_With_Shrimp.png"));
+
+            // Load Gambar Panci
+            imgPotEmpty = ImageIO.read(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Utensils/Boiling_Pot.png"));
+            imgPotRice = ImageIO.read(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Utensils/Boiling_Pot_With_Rice.png"));
+            
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void addIngredient(Ingredient in) {
-        // Hanya bisa tambah bahan jika belum matang/gosong
-        if (!isCooked && !isBurned) {
-            ingredients.add(in);
-            System.out.println("Bahan " + in.name + " masuk ke " + name);
-        }
-    }
-
-    // Method ini dipanggil oleh CookingStation setiap frame
-    public void cook() {
-        // Hanya masak jika ada bahan
-        if (!ingredients.isEmpty()) {
-            cookingProgress++;
-
-            // Update State Bahan
-            if (cookingProgress >= TIME_TO_BURN) {
-                isBurned = true;
-                isCooked = false;
-                for(Ingredient i : ingredients) i.burn(); // Ubah visual bahan jadi gosong
-            } 
-            else if (cookingProgress >= TIME_TO_COOK) {
-                isCooked = true;
-                for(Ingredient i : ingredients) i.cook(); // Ubah visual bahan jadi matang
+    // Method logic untuk menentukan gambar mana yang dipakai
+    public void updateLook() {
+        if (name.equalsIgnoreCase("Pan")) {
+            if (hasIngredient("shrimp")) {
+                image = imgPanShrimp; // Ganti ke Pan with Shrimp
+            } else {
+                image = imgPanEmpty;  // Pan Kosong
+            }
+        } 
+        else if (name.equalsIgnoreCase("Pot")) {
+            if (hasIngredient("rice")) {
+                image = imgPotRice;   // Ganti ke Pot with Rice
+            } else {
+                image = imgPotEmpty;  // Pot Kosong
             }
         }
     }
-    
-    // Method untuk menuang isi panci ke piring
+
+    // Helper untuk cek apakah ada bahan tertentu
+    private boolean hasIngredient(String ingredientName) {
+        for (Ingredient i : ingredients) {
+            if (i.name.equalsIgnoreCase(ingredientName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void addIngredient(Ingredient in) {
+        if (!isCooked && !isBurned) {
+            ingredients.add(in);
+            System.out.println("Bahan " + in.name + " masuk ke " + name);
+            
+            // PENTING: Update tampilan setelah bahan masuk
+            updateLook();
+        }
+    }
+
     public ArrayList<Ingredient> serveToPlate() {
         if (isCooked && !isBurned) {
             ArrayList<Ingredient> servedFood = new ArrayList<>(ingredients);
-            
-            // Reset Panci setelah dituang
             ingredients.clear();
+            
+            // Reset status
             cookingProgress = 0;
             isCooked = false;
             
+            // PENTING: Kembalikan tampilan ke kosong setelah disajikan
+            updateLook();
+            
             return servedFood;
         }
-        return null; // Tidak bisa dituang jika belum matang atau gosong
+        return null; 
     }
 
-    // Visualisasi Panci + Bar Progress + Bahan di dalamnya
+    public void cook() {
+        if (!ingredients.isEmpty()) {
+            cookingProgress++;
+            
+            // Logic State (Gosong/Matang)
+            if (cookingProgress >= TIME_TO_BURN) {
+                isBurned = true;
+                isCooked = false;
+                for(Ingredient i : ingredients) i.burn(); 
+            } 
+            else if (cookingProgress >= TIME_TO_COOK) {
+                isCooked = true;
+                for(Ingredient i : ingredients) i.cook();
+            }
+        }
+    }
+
     @Override
     public void draw(Graphics2D g2, int x, int y) {
-        // 1. Gambar Panci
+        // 1. Gambar Utensil (Sudah otomatis berubah berkat updateLook)
         super.draw(g2, x, y);
 
-        // 2. Gambar Bahan di dalam Panci (Kecil di tengah)
+        // 2. Gambar Progress Bar (Hanya jika ada isinya)
         if (!ingredients.isEmpty()) {
-            // Ambil bahan pertama sebagai representasi
-            g2.drawImage(ingredients.get(0).image, x + 10, y + 10, 20, 20, null);
-        }
-
-        // 3. Gambar Progress Bar (Hanya jika sedang ada isinya)
-        if (!ingredients.isEmpty()) {
+            // (Kode Progress Bar sama seperti sebelumnya)
             int barWidth = 32;
             int barHeight = 5;
             int screenX = x + 8;
             int screenY = y - 10;
 
-            // Background Putih
             g2.setColor(Color.WHITE);
             g2.fillRect(screenX, screenY, barWidth, barHeight);
 
-            // Logic Warna Bar
             if (isBurned) g2.setColor(Color.BLACK);
-            else if (isCooked) g2.setColor(Color.GREEN); // Matang!
-            else g2.setColor(Color.ORANGE); // Sedang masak
+            else if (isCooked) g2.setColor(Color.GREEN);
+            else g2.setColor(Color.ORANGE);
 
-            // Hitung panjang bar berdasarkan progress (Max sampai gosong)
             double ratio = (double) cookingProgress / TIME_TO_BURN;
             if (ratio > 1) ratio = 1;
             
             g2.fillRect(screenX, screenY, (int)(barWidth * ratio), barHeight);
-            
-            // Border
             g2.setColor(Color.BLACK);
             g2.drawRect(screenX, screenY, barWidth, barHeight);
         }
+        
+        // Catatan: Kita tidak perlu lagi menggambar `ingredients.get(0).image` secara manual 
+        // karena gambar panci/wajan itu sendiri sudah berubah visualnya (ada udangnya/nasinya).
+        // Kecuali kamu punya bahan lain yang tidak ada aset khususnya.
     }
 }
