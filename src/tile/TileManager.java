@@ -16,7 +16,7 @@ public class TileManager {
     public Tile[][] worldTiles;
     public int mapTileNum[][];
 
-public TileManager(GamePanel gp) {
+    public TileManager(GamePanel gp) {
         this.gp = gp;
 
         mapTileNum = new int[gp.maxScreenCol][gp.maxScreenRow];
@@ -24,8 +24,7 @@ public TileManager(GamePanel gp) {
 
         loadMap("/maps/map4.txt");
         setupTiles();
-        
-        // TAMBAHAN: Panggil method ini untuk menaruh panci
+
         setupDefaultUtensils();
     }
 
@@ -55,7 +54,6 @@ public TileManager(GamePanel gp) {
         } catch(Exception e) { e.printStackTrace(); }
     }
 
-    // Method baru untuk inisialisasi objek Tile yang UNIK per koordinat
     public void setupTiles() {
         int col = 0;
         int row = 0;
@@ -63,36 +61,41 @@ public TileManager(GamePanel gp) {
         while(col < gp.maxScreenCol && row < gp.maxScreenRow) {
             int tileType = mapTileNum[col][row];
 
-            // Factory sederhana berdasarkan angka di map.txt
             switch (tileType) {
                 case 0: // Floor
                     worldTiles[col][row] = new Tile(gp);
-                    setupImage(worldTiles[col][row], "/tiles/floor_tile(3).png", false);
+                    setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
                     break;
                 case 1: // Wall
                     worldTiles[col][row] = new Tile(gp);
                     setupImage(worldTiles[col][row], "/tiles/wall_tile.png", true);
                     break;
-                case 2: // CUTTING STATION (Misal angka 2 di map adalah cutting station)
+                case 2: // Cutting Station
                     worldTiles[col][row] = new CuttingStation(gp);
-                    // Gambar diload di constructor CuttingStation
                     break;
-                case 3: // INGREDIENT STORAGE (Misal angka 3)
+                case 3: // Ingredient Storage (Cucumber) - Contoh
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
                     break;
                 case 4: // Cooking Station
                     worldTiles[col][row] = new CookingStation(gp);
                     break;
-                case 5:
+                case 5: // Serving Counter
                     worldTiles[col][row] = new ServingCounter(gp);
                     break;
-                case 6:
+                case 6: // Plate Storage
                     worldTiles[col][row] = new PlateStorage(gp);
                     break;
-                case 7:
-                    worldTiles[col][row] = new AssemblyStation(gp);
+
+                // [PERBAIKAN UTAMA DI SINI]
+                case 7: // Assembly Station (Horizontal)
+                    worldTiles[col][row] = new AssemblyStation(gp, "horizontal");
                     break;
-                default: // Default floor
+
+                case 8: // Assembly Station (Vertical) - [BARU]
+                    worldTiles[col][row] = new AssemblyStation(gp, "vertical");
+                    break;
+
+                default: // Default Floor
                     worldTiles[col][row] = new Tile(gp);
                     setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
                     break;
@@ -106,36 +109,22 @@ public TileManager(GamePanel gp) {
         }
     }
 
-public void setupDefaultUtensils() {
-        // Koordinat ini didapat dari melihat map4.txt
-        // Row 2 (Baris ke-3 dari atas)
-        // Col 12, 13, 14 adalah Cooking Station (angka 4)
-        
-        // Taruh Pot 1
+    public void setupDefaultUtensils() {
         placeUtensilOnStation(12, 2, "Pot");
-        
-        // Taruh Pot 2
         placeUtensilOnStation(13, 2, "Pot");
-        
-        // Taruh Pan 1
         placeUtensilOnStation(14, 2, "Pan");
     }
 
-private void placeUtensilOnStation(int col, int row, String utensilName) {
-        // Cek dulu apakah tile di koordinat itu benar-benar CookingStation
+    private void placeUtensilOnStation(int col, int row, String utensilName) {
         if (col < gp.maxScreenCol && row < gp.maxScreenRow) {
             if (worldTiles[col][row] instanceof CookingStation) {
                 CookingStation cs = (CookingStation) worldTiles[col][row];
-                
-                // Spawn Utensil baru dan taruh di station
                 cs.utensilOnStation = new KitchenUtensil(gp, utensilName);
-                
                 System.out.println("Spawned " + utensilName + " at [" + col + "," + row + "]");
             }
         }
     }
 
-    // Helper load image
     private void setupImage(Tile tile, String path, boolean collision) {
         try {
             tile.image = ImageIO.read(getClass().getResourceAsStream(path));
@@ -143,19 +132,15 @@ private void placeUtensilOnStation(int col, int row, String utensilName) {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // Di class TileManager
     public void update() {
         for (int col = 0; col < gp.maxScreenCol; col++) {
             for (int row = 0; row < gp.maxScreenRow; row++) {
 
                 Tile currentTile = worldTiles[col][row];
 
-                // Update Cooking Station (logic masak)
                 if (currentTile instanceof CookingStation) {
                     ((CookingStation) currentTile).update();
                 }
-
-                // [TAMBAHAN BARU] Update Serving Counter (logic timer piring kembali)
                 else if (currentTile instanceof ServingCounter) {
                     ((ServingCounter) currentTile).update();
                 }
@@ -173,25 +158,23 @@ private void placeUtensilOnStation(int col, int row, String utensilName) {
 
             Tile currentTile = worldTiles[col][row];
 
-            // Jika CuttingStation, panggil draw khusus (biar ada progress bar)
+            // Panggil method draw khusus untuk setiap tipe station
             if (currentTile instanceof CuttingStation) {
                 ((CuttingStation)currentTile).draw(g2, x, y);
             }
             else if (currentTile instanceof CookingStation) {
                 ((CookingStation)currentTile).draw(g2, x, y);
             }
-            // 3. TAMBAHKAN INI: Cek Assembly Station
             else if (currentTile instanceof AssemblyStation) {
                 ((AssemblyStation)currentTile).draw(g2, x, y);
             }
             else if (currentTile instanceof PlateStorage) {
                 ((PlateStorage)currentTile).draw(g2, x, y);
             }
-
             else if (currentTile instanceof ServingCounter) {
                 ((ServingCounter)currentTile).draw(g2, x, y);
             }
-            // 4. Default Tile (Lantai/Tembok biasa)
+            // Default draw (untuk lantai/dinding biasa)
             else if (currentTile != null && currentTile.image != null) {
                 g2.drawImage(currentTile.image, x, y, gp.tileSize, gp.tileSize, null);
             }
@@ -207,6 +190,3 @@ private void placeUtensilOnStation(int col, int row, String utensilName) {
         }
     }
 }
-
-
-
