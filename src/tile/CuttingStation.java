@@ -1,143 +1,93 @@
 package tile;
 
-import environment.Entity;
-import environment.Ingredient;
-import environment.IngredientState;
-import environment.Item;
+import environment.*;
 import main.GamePanel;
-import main.PlayerState;
-import environment.Player;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.IOException;
 
-public class CuttingStation extends Tile {
+public class CookingStation extends Tile {
 
-    // Item yang ditaruh di atas station
-    public Item itemOnTop = null;
+    public KitchenUtensil utensilOnStation = null;
 
-    // Progress bar variable
-    private int currentProgress = 0;
-    private final int TIME_TO_CUT = 180; // 3 detik x 60 FPS
-
-    public CuttingStation(GamePanel gp) {
+    public CookingStation(GamePanel gp) {
         super(gp);
-        this.collision = true; // Player tidak bisa menembus meja
-        loadStationImage();
-    }
-
-    private void loadStationImage() {
+        this.collision = true;
         try {
-            // GANTI baris ini:
-            // image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
-
-            // MENJADI arah ke file gambar baru:
-            image = ImageIO.read(getClass().getResourceAsStream("/stations/cutting_station.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/cooking_station.png"));
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // Method ini dipanggil terus menerus selama tombol interact ditekan
+    // Method interaksi Player dengan Kompor
+    @Override
     public void interact(Entity player) {
-
-        // KASUS 1: Menaruh Item (Syarat: Meja kosong, Tangan player isi)
-        if (itemOnTop == null && player.inventory != null) {
-            itemOnTop = player.inventory;
-            player.inventory = null;
-            System.out.println("Menaruh " + itemOnTop.name + " di Cutting Station");
-            return;
+        
+        // KASUS A: Kompor KOSONG
+        if (utensilOnStation == null) {
+            // Jika Player bawa Panci -> Taruh Panci
+            if (player.inventory instanceof KitchenUtensil) {
+                utensilOnStation = (KitchenUtensil) player.inventory;
+                player.inventory = null;
+                System.out.println("Menaruh panci di kompor.");
+            }
         }
-
-        // KASUS 2: Interaksi dengan Item di Meja
-        if (itemOnTop != null) {
-
-            // Cek apakah item adalah ingredient mentah (RAW)
-            boolean isRawIngredient = false;
-            if (itemOnTop instanceof Ingredient) {
-                if (((Ingredient) itemOnTop).state == IngredientState.RAW) {
-                    isRawIngredient = true;
+        
+        // KASUS B: Kompor ADA Panci
+        else {
+            // 1. Player bawa Bahan -> Masukkan ke Panci
+            if (player.inventory instanceof Ingredient) {
+                Ingredient in = (Ingredient) player.inventory;
+                if (in.canBeCooked()) { // Cek apakah bahan mentah/potong
+                    utensilOnStation.addIngredient(in);
+                    player.inventory = null;
                 }
             }
-
-            // A. LOGIKA MEMOTONG (Syarat: Item RAW, Tangan Kosong)
-            if (isRawIngredient && player.inventory == null) {
-                if (player instanceof Player) {
-                    ((Player) player).playerState = PlayerState.BUSY;
-                }
-
-                // Tambah progress
-                currentProgress++;
-
-                // Debug log (opsional, muncul tiap 1 detik)
-                if (currentProgress % 60 == 0) {
-                    System.out.println("Memotong... " + (currentProgress/60) + " detik");
-                }
-
-                // Cek apakah selesai
-                if (currentProgress >= TIME_TO_CUT) {
-                    ((Ingredient) itemOnTop).chop();
-                    currentProgress = 0;
-
-                    // CASTING LAGI DISINI
-                    if (player instanceof Player) {
-                        ((Player) player).playerState = PlayerState.IDLE;
+            
+            // 2. Player bawa Piring -> Pindahkan Makanan Matang (Plating)
+            else if (player.inventory instanceof Plate) {
+                Plate plate = (Plate) player.inventory;
+                
+                // Coba tuang dari panci ke piring
+                ArrayList<Ingredient> food = utensilOnStation.serveToPlate();
+                
+                if (food != null) {
+                    // Masukkan semua isi panci ke piring
+                    for(Ingredient i : food) {
+                        plate.addItem(i);
                     }
-                    System.out.println("Selesai memotong!");
+                    System.out.println("Makanan dipindah ke piring!");
+                } else {
+                    System.out.println("Belum matang atau gosong!");
                 }
             }
-
-            // B. LOGIKA MENGAMBIL (Syarat: Tangan Kosong, Bukan sedang memotong/Bahan sudah jadi)
-            // Kita tambahkan pengecekan: Jika tombol baru saja ditekan (bukan ditahan) atau item sudah jadi
+            
+            // 3. Player Tangan Kosong -> Angkat Panci
             else if (player.inventory == null) {
-                // Jika item sudah CHOPPED atau bukan Ingredient, ambil.
-                // Jika item masih RAW tapi player ingin ambil (batal potong),
-                // ini agak tricky kalau pakai tombol yang sama.
-                // Sesuai spec: Interact untuk memotong.
-                // Kita asumsikan kalau item sudah CHOPPED baru bisa diambil,
-                // ATAU player harus lepas tombol dulu baru tekan lagi untuk ambil (perlu logika KeyHandler advanced).
-
-                // Simpelnya: Kalau sudah chopped, ambil.
-                if (!isRawIngredient) {
-                    player.inventory = itemOnTop;
-                    itemOnTop = null;
-                    currentProgress = 0;
-                    System.out.println("Mengambil hasil potongan");
-                }
+                player.inventory = utensilOnStation;
+                utensilOnStation = null;
+                System.out.println("Mengangkat panci.");
             }
         }
     }
 
-    // Method visualisasi progress bar
+    // PENTING: Panggil method ini di GamePanel.update() atau TileManager.update()
+    // Agar masakan bisa matang
+    public void update() {
+        if (utensilOnStation != null) {
+            // Panci dipanaskan
+            utensilOnStation.cook();
+        }
+    }
+
+    @Override
     public void draw(Graphics2D g2, int x, int y) {
-        // Gambar Meja
+        // 1. Gambar Kompor
         g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
 
-        // Gambar Item di atas meja
-        if (itemOnTop != null) {
-            g2.drawImage(itemOnTop.image, x + 12, y + 12, gp.itemSize, gp.itemSize, null);
-
-            // Gambar Progress Bar (Hanya jika ada progress dan belum selesai)
-            if (currentProgress > 0 && currentProgress < TIME_TO_CUT) {
-                int barWidth = 32;
-                int barHeight = 6;
-                int screenX = x + 8;
-                int screenY = y - 10;
-
-                // Background Merah
-                g2.setColor(Color.RED);
-                g2.fillRect(screenX, screenY, barWidth, barHeight);
-
-                // Foreground Hijau (Sesuai persentase)
-                int greenBar = (int) (((double)currentProgress / TIME_TO_CUT) * barWidth);
-                g2.setColor(Color.GREEN);
-                g2.fillRect(screenX, screenY, greenBar, barHeight);
-
-                // Border Hitam
-                g2.setColor(Color.BLACK);
-                g2.drawRect(screenX, screenY, barWidth, barHeight);
-            }
+        // 2. Gambar Panci (Jika ada)
+        if (utensilOnStation != null) {
+            // Panggil draw milik KitchenUtensil biar bar-nya muncul
+            // Kita sesuaikan posisi sedikit biar pas di tengah kompor
+            utensilOnStation.draw(g2, x, y); 
         }
     }
 }
