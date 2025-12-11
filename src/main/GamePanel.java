@@ -5,6 +5,8 @@ import tile.UITimer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -23,8 +25,11 @@ public class GamePanel extends JPanel implements Runnable {
     int FPS = 60;
 
     public GameState gameState;
+
+    // Scene objects
     PlayScene playScene = new PlayScene(this);
     MainMenuScene mainMenuScene = new MainMenuScene(this);
+    PauseScene pauseScene = new PauseScene(this);
 
     Thread gameThread;
     public ScheduledExecutorService globalExecutor = Executors.newScheduledThreadPool(4);
@@ -34,13 +39,8 @@ public class GamePanel extends JPanel implements Runnable {
     public TileManager tileM = new TileManager(this);
     public ItemManager itemM = new ItemManager(this);
     public PlayerManager playerM = new PlayerManager(this, keyH);
-    // ----------------------------------------------------
-    // START: Deklarasi Timer Baru
-    // ----------------------------------------------------
+
     public UITimer uiTimer;
-    // ----------------------------------------------------
-    // END: Deklarasi Timer Baru
-    // ----------------------------------------------------
     public OrderManager orderM = new OrderManager(this);
 
     public GamePanel() {
@@ -50,9 +50,42 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
 
-        gameState = GameState.PLAYING;
-        // Inisialisasi Timer dengan waktu awal (misalnya 150 detik)
+        // --- MOUSE LISTENER GLOBAL (PENTING untuk MainMenuScene) ---
+        MouseAdapter globalMouseHandler = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (gameState == GameState.MAINMENU) {
+                    mainMenuScene.mousePressed(e);
+                }
+                else if (gameState == GameState.PLAYING) {
+                    playScene.mousePressed(e);
+                }
+                else if (gameState == GameState.PAUSE) {
+                    pauseScene.mousePressed(e);
+                }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if (gameState == GameState.MAINMENU) {
+                    mainMenuScene.mouseMoved(e);
+                }
+                else if (gameState == GameState.PLAYING) {
+                    playScene.mouseMoved(e);
+                }
+                else if (gameState == GameState.PAUSE) {
+                    pauseScene.mouseMoved(e);
+                }
+            }
+        };
+        this.addMouseListener(globalMouseHandler);
+        this.addMouseMotionListener(globalMouseHandler);
+        // -----------------------------------------------------------
+
+        // Inisialisasi Timer
         uiTimer = new UITimer(this, 150);
+
+        // Set state awal
         gameState = GameState.MAINMENU;
     }
 
@@ -65,17 +98,16 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         double drawInterval = 1000000000/FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
-        long lastTime = System.nanoTime(); // Waktu terakhir untuk perhitungan Delta Time
+        long lastTime = System.nanoTime();
 
         while(gameThread != null) {
             long currentTime = System.nanoTime();
-            // Delta time: Waktu yang telah berlalu sejak frame terakhir, dalam nanodetik
             double deltaTime = (double) (currentTime - lastTime);
             lastTime = currentTime;
 
-            if (gameState == GameState.PLAYING) {
-                update(deltaTime); // Meneruskan deltaTime ke update
-            }
+            // Panggil method update tunggal (tanpa if gameState disini)
+            // Biarkan method update yang mengurus pengecekan state
+            update(deltaTime);
 
             repaint();
 
@@ -105,20 +137,22 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    /**
+     * INI ADALAH METHOD UPDATE GABUNGAN
+     * Method ini menangani logika routing scene dan timer
+     */
     public void update(double deltaTime) {
-        playerM.update();
-        orderM.update();
-
-        // Panggil update pada objek timer
-        uiTimer.update(deltaTime);
-    }
-
-    public void update() {
-        if(gameState == GameState.MAINMENU){
-
+        if (gameState == GameState.MAINMENU) {
+            mainMenuScene.update();
         }
-        else if (gameState == GameState.PLAYING){
+        else if (gameState == GameState.PLAYING) {
+            // 1. Update logika Scene (Player, Order, dll ada di dalam sini)
             playScene.update();
+
+            // 2. Update Timer (karena butuh deltaTime)
+            uiTimer.update(deltaTime);
+        } else if (gameState == GameState.PAUSE) {
+            pauseScene.update();
         }
     }
 
@@ -132,8 +166,10 @@ public class GamePanel extends JPanel implements Runnable {
             mainMenuScene.draw(g2);
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
+        } else if (gameState == GameState.PAUSE) {
+            playScene.draw(g2);
+            pauseScene.draw(g2);
         }
         g2.dispose();
     }
-
 }
