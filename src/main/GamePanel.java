@@ -23,6 +23,8 @@ public class GamePanel extends JPanel implements Runnable {
     public GameState gameState;
     PlayScene playScene = new PlayScene(this);
     MainMenuScene mainMenuScene = new MainMenuScene(this);
+    // --- TAMBAH DEKLARASI RESULT SCENE ---
+    public ResultScene resultScene = new ResultScene(this);
 
     Thread gameThread;
     public KeyHandler keyH = new KeyHandler(this);
@@ -49,7 +51,8 @@ public class GamePanel extends JPanel implements Runnable {
 
         gameState = GameState.PLAYING;
         // Inisialisasi Timer dengan waktu awal (misalnya 150 detik)
-        uiTimer = new UITimer(this, 150);
+        //TEST DOANG COBA 20 DETIK
+        uiTimer = new UITimer(this, 20);
         gameState = GameState.MAINMENU;
     }
 
@@ -72,7 +75,13 @@ public class GamePanel extends JPanel implements Runnable {
 
             if (gameState == GameState.PLAYING) {
                 update(deltaTime); // Meneruskan deltaTime ke update
+            // Perubahan GameState ke Result
+                if (uiTimer.isTimeUp()){
+                    gameState = GameState.RESULT;
+                    System.out.println("GAME OVER! Waktu habis, beralih ke RESULT.");
+                }
             }
+
 
             repaint();
 
@@ -102,6 +111,9 @@ public class GamePanel extends JPanel implements Runnable {
         uiTimer.update(deltaTime);
     }
 
+    /** KAYAKNYA GA PERLU
+     *  Ntar coba di buang sementara
+     */
     public void update() {
         if(gameState == GameState.MAINMENU){
 
@@ -121,7 +133,11 @@ public class GamePanel extends JPanel implements Runnable {
             mainMenuScene.draw(g2);
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
+        } else if (gameState == GameState.RESULT) {  //Ganti State ke RESULT
+            playScene.draw(g2);
+            resultScene.draw(g2);
         }
+
         g2.dispose();
     }
 

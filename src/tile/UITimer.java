@@ -47,10 +47,15 @@ public class UITimer {
             if (gameTimeSeconds <= 0) {
                 gameTimeSeconds = 0; // Pastikan tidak negatif
                 // Mengubah status game, meniru level Overcooked! selesai
-                gp.gameState = GameState.PAUSE;
+                gp.gameState = GameState.RESULT;
                 System.out.println("WAKTU HABIS! LEVEL SELESAI.");
             }
         }
+    }
+
+    //Mengembalikan true jika waktu habis
+    public boolean isTimeUp(){
+        return gameTimeSeconds <= 0;
     }
 
     /**
