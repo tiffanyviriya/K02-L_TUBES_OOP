@@ -36,8 +36,9 @@ public class PlateStorage extends Tile{
     }
 
     public void storePlate(Plate plate){
-        plate.plateState = PlateState.DIRTY;
-        plateOnStorage.push(plate);
+    // Menggunakan nama package lengkap
+    plate.plateState = environment.PlateState.DIRTY; 
+    plateOnStorage.push(plate);
     }
 
     public Plate takePlate(){

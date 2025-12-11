@@ -62,23 +62,25 @@ public class CookingStation extends Tile {
             }
 
             // B. Player membawa PIRING (Plate) -> Angkat masakan matang (Plating)
-            else if (player.inventory instanceof Plate) {
-                Plate plate = (Plate) player.inventory;
+            // --- TAMBAHKAN LOGIKA INI ---
+        // Sub-kasus B: Player bawa PIRING -> Plating (Ambil masakan)
+        else if (player.inventory instanceof Plate) {
+            Plate plate = (Plate) player.inventory;
 
-                // Coba tuang isi panci ke piring
-                // Method serveToPlate() akan return null jika belum matang/gosong
-                ArrayList<Ingredient> food = utensilOnStation.serveToPlate();
+            // Panggil method serveToPlate dari utensil
+            java.util.ArrayList<Ingredient> food = utensilOnStation.serveToPlate();
 
-                if (food != null) {
-                    // Pindahkan semua bahan dari panci ke piring
-                    for (Ingredient i : food) {
-                        plate.addItem(i);
-                    }
-                    System.out.println("Masakan dipindah ke piring!");
-                } else {
-                    System.out.println("Belum matang atau gosong! Tidak bisa diambil.");
+            if (food != null) {
+                // Pindahkan semua bahan ke piring
+                for (Ingredient i : food) {
+                    plate.addItem(i);
                 }
+                System.out.println("Masakan berhasil dipindah ke piring!");
+            } else {
+                System.out.println("Belum matang atau gosong! Tidak bisa diambil.");
             }
+        }
+        
 
             // C. Player TANGAN KOSONG -> Angkat Panci/Wajan
             else if (player.inventory == null) {
@@ -99,7 +101,6 @@ public class CookingStation extends Tile {
     }
 
     // --- RENDER ---
-    @Override
     public void draw(Graphics2D g2, int x, int y) {
         // 1. Gambar Kompor
         if (image != null) {
