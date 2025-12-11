@@ -76,6 +76,18 @@ public class TileManager {
                 case 3: // Ingredient Storage (Cucumber) - Contoh
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
                     break;
+                case 9:
+                    worldTiles[col][row] = new IngredientStorage(gp, "rice"); // Beras
+                    break;
+                case 10:
+                    worldTiles[col][row] = new IngredientStorage(gp, "fish"); // Ikan
+                    break;
+                case 11:
+                    worldTiles[col][row] = new IngredientStorage(gp, "shrimp"); // Udang
+                    break;
+                case 12:
+                    worldTiles[col][row] = new IngredientStorage(gp, "nori"); // Nori
+                    break;
                 case 4: // Cooking Station
                     worldTiles[col][row] = new CookingStation(gp);
                     break;
