@@ -67,7 +67,7 @@ public TileManager(GamePanel gp) {
             switch (tileType) {
                 case 0: // Floor
                     worldTiles[col][row] = new Tile(gp);
-                    setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
+                    setupImage(worldTiles[col][row], "/tiles/floor_tile(3).png", false);
                     break;
                 case 1: // Wall
                     worldTiles[col][row] = new Tile(gp);
