@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 import java.util.Stack;
 
 public class PlateStorage extends Tile{
-    private int numOfPlate = 2;
+    private int numOfPlate = 4;
     public Stack<Plate> plateOnStorage = new Stack<>();
 
     public PlateStorage(GamePanel gp) {
