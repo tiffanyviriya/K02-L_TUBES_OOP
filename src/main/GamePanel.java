@@ -96,6 +96,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void update(double deltaTime) {
         playerM.update();
+        tileM.update();
         orderM.update();
 
         // Panggil update pada objek timer
