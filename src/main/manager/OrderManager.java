@@ -99,20 +99,24 @@ public class OrderManager {
         }
     }
 
-    // --- LOGIKA VALIDASI ORDER ---
-    // Sekarang menerima parameter DISH, bukan Item/Plate lagi
-    public void checkServing(Dish dish) {
-        if (dish == null) return;
+    // --- LOGIKA VALIDASI ORDER BERDASARKAN BAHAN ---
+    // Menerima daftar string bahan (misal: "fish_CHOPPED") dari piring
+    public void checkServing(ArrayList<String> plateIngredients) {
+        // Jika piring kosong, abaikan
+        if (plateIngredients.isEmpty()) return;
 
         boolean matchFound = false;
 
         for (int i = 0; i < activeOrders.size(); i++) {
             Order order = activeOrders.get(i);
 
-            // Karena Dish sudah divalidasi oleh Builder, kita cukup bandingkan namanya saja
-            if (order.recipe.name.equalsIgnoreCase(dish.name)) {
+            // Cek apakah bahan di piring cocok dengan resep order ini
+            if (isRecipeMatch(order.recipe, plateIngredients)) {
                 System.out.println("Order Selesai: " + order.recipe.name);
                 score += order.recipe.reward;
+
+                // Tambahkan suara poin jika ada
+                gp.soundM.playSE(3); // Asumsi indeks 3 adalah 'Poin.wav'
 
                 activeOrders.remove(i);
                 reindexOrders();
@@ -122,9 +126,29 @@ public class OrderManager {
         }
 
         if (!matchFound) {
-            System.out.println("Makanan Salah! Penalti -50. Dish: " + dish.name);
+            System.out.println("Makanan Salah! Penalti -50.");
             score -= 50;
+            // Tambahkan suara error jika ada
+            gp.soundM.playSE(6); // Asumsi indeks 6 adalah 'Error_Action.wav'
         }
+    }
+
+    // Helper: Mencocokkan bahan piring dengan resep
+    private boolean isRecipeMatch(Recipe recipe, ArrayList<String> plateContents) {
+        // Jumlah bahan harus sama persis
+        if (recipe.requiredIngredients.size() != plateContents.size()) return false;
+
+        // Gunakan copy list agar aman saat remove
+        ArrayList<String> tempPlate = new ArrayList<>(plateContents);
+
+        for (String req : recipe.requiredIngredients) {
+            if (tempPlate.contains(req)) {
+                tempPlate.remove(req);
+            } else {
+                return false; // Bahan wajib tidak ditemukan
+            }
+        }
+        return true; // Semua bahan cocok
     }
 
     public void draw(Graphics2D g2) {

@@ -76,15 +76,15 @@ public class Dish extends Item {
             }
 
             // 2. Cek kecocokan dengan Resep yang ada di OrderManager
-            // Kita mengakses daftar resep level ini lewat GamePanel -> OrderManager
             for (Recipe recipe : gp.orderM.levelRecipes) {
                 if (isRecipeMatch(recipe, ingredientNames)) {
-                    // JIKA COCOK: Return Dish baru
+                    // JIKA COCOK: Return Dish baru sesuai resep
+                    // Dish ini HANYA UNTUK VISUAL (mengubah tampilan piring)
                     return new Dish(gp, recipe.name, new ArrayList<>(ingredients));
                 }
             }
 
-            // JIKA TIDAK ADA YANG COCOK: Return null (Belum jadi Dish valid)
+            // JIKA TIDAK ADA YANG COCOK: Return null (Visual tetap piring berisi bahan)
             return null;
         }
 

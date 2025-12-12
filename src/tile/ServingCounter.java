@@ -1,8 +1,11 @@
 package tile;
 
 import environment.entity.Entity;
+import environment.food_related.Ingredient;
+import environment.item.Item;
 import environment.item.Plate;
 import environment.item.PlateState;
+import environment.item.Preparable;
 import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
@@ -46,15 +49,24 @@ public class ServingCounter extends Tile {
         if (player.inventory instanceof Plate) {
             Plate servedPlate = (Plate) player.inventory;
 
-            // 1. Cek apakah piring berisi Dish yang SUDAH JADI?
-            // (Dish ini dibuat otomatis oleh Plate via Builder saat assembly)
-            if (servedPlate.completedDish != null) {
+            // Pastikan piring tidak kosong
+            if (!servedPlate.itemOnPlate.isEmpty()) {
 
-                // 2. Kirim Dish ke OrderManager untuk dinilai
-                gp.orderM.checkServing(servedPlate.completedDish);
+                // 1. Ekstrak daftar bahan (String) dari piring untuk validasi
+                ArrayList<String> plateIngredients = new ArrayList<>();
+                for (Preparable p : servedPlate.itemOnPlate) {
+                    if (p instanceof Ingredient) {
+                        Ingredient ing = (Ingredient) p;
+                        // Format string harus sama dengan yang ada di Recipe (misal: "fish_CHOPPED")
+                        plateIngredients.add(ing.name + "_" + ing.state);
+                    }
+                }
+
+                // 2. Kirim daftar bahan ke OrderManager untuk dicek (Benar/Salah)
+                gp.orderM.checkServing(plateIngredients);
 
                 // 3. Bersihkan Piring
-                servedPlate.completedDish = null; // Hapus Dish
+                servedPlate.completedDish = null; // Hapus Dish visual
                 servedPlate.itemOnPlate.clear();  // Hapus bahan-bahan
 
                 // 4. Ambil piring dari tangan player & mulai timer pengembalian
@@ -64,8 +76,7 @@ public class ServingCounter extends Tile {
                 System.out.println("Dish disajikan. Piring kembali dlm 10 detik.");
             }
             else {
-                // Jika piring kosong atau cuma berisi bahan acak yang bukan resep
-                System.out.println("Gagal: Piring belum berisi hidangan yang valid!");
+                System.out.println("Gagal: Piring kosong!");
             }
         }
         else {
@@ -73,7 +84,7 @@ public class ServingCounter extends Tile {
         }
     }
 
-    // Logika pengembalian piring ke storage (tidak berubah drastis)
+    // Logika pengembalian piring ke storage (tidak berubah)
     public void update() {
         if (pendingPlates.isEmpty()) return;
 

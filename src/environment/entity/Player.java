@@ -7,6 +7,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import environment.food_related.Ingredient;
+import environment.food_related.IngredientState;
 import environment.item.Item;
 import main.util.GamePanel;
 import main.handler.KeyHandler;
@@ -16,6 +18,11 @@ public class Player extends Entity {
 
     KeyHandler keyH;
     public PlayerState playerState;
+
+    // --- DASH VARIABLES ---
+    private int dashCooldown = 0;
+    private final int DASH_COOLDOWN_MAX = 120; // 2 detik (60 FPS)
+    private final int DASH_DISTANCE = 3; // Jarak dash dalam tile
 
     public Player(GamePanel gp, KeyHandler keyH, int posX, int posY) {
         super(gp);
@@ -29,7 +36,8 @@ public class Player extends Entity {
         setDefaultValue();
         getPlayerImage();
 
-        solidArea = new Rectangle(0, 16, 32, 32);
+        // Hitbox lebih kecil dari 1 tile agar tidak mudah nyangkut
+        solidArea = new Rectangle(8, 16, 32, 32);
         solidAreaDefaultX = solidArea.x;
         solidAreaDefaultY = solidArea.y;
     }
@@ -63,29 +71,39 @@ public class Player extends Entity {
     }
 
     public void update() {
-        // --- 1. LOGIKA HOLD & BUSY (Cutting) ---
-        // Menggunakan tombol V (actionPressed)
+        if (dashCooldown > 0) dashCooldown--;
+
+        // 1. Cek Status BUSY (Sedang memotong/mencuci)
         if (playerState == PlayerState.BUSY) {
-            // Jika tombol V dilepas saat sedang memotong -> BERHENTI
             if (!keyH.actionPressed) {
-                playerState = PlayerState.IDLE;
+                playerState = PlayerState.IDLE; // Batal jika tombol dilepas
             } else {
-                // Jika tombol V ditahan -> LANJUT MEMOTONG
-                interactWithStation();
+                interactWithStation(); // Lanjut kerja
             }
-            return; // Jangan jalankan kode movement jika sedang busy
+            return; // Kunci pergerakan
         }
 
-        // --- 2. PERGERAKAN ---
+        // 2. Input Pergerakan
+        boolean isMoving = false;
         if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
             if (keyH.upPressed) direction = "up";
             else if (keyH.downPressed) direction = "down";
             else if (keyH.leftPressed) direction = "left";
             else if (keyH.rightPressed) direction = "right";
+            isMoving = true;
+        }
 
+        // 3. Cek Kolisi & Update Posisi
+        if (isMoving) {
             collisionOn = false;
+
+            // Cek Tile (Dinding/Station)
             gp.cChecker.checkTile(this);
 
+            // Cek Player Lain (Supaya tidak tembus badan chef lain)
+            gp.cChecker.checkPlayer(this);
+
+            // Jika tidak ada tabrakan, baru gerak
             if (!collisionOn) {
                 switch (direction) {
                     case "up" -> pos.y -= speed;
@@ -95,39 +113,151 @@ public class Player extends Entity {
                 }
             }
 
+            // Animasi Sprite
             spriteCounter++;
-            if(spriteCounter > 12) {
-                if(spriteNum == 1) spriteNum = 2;
-                else if(spriteNum == 2) spriteNum = 3;
-                else if(spriteNum == 3) spriteNum = 1;
+            if (spriteCounter > 12) {
+                if (spriteNum == 1) spriteNum = 2;
+                else if (spriteNum == 2) spriteNum = 3;
+                else if (spriteNum == 3) spriteNum = 1;
                 spriteCounter = 0;
             }
+        } else {
+            // Reset sprite ke posisi diam jika tidak bergerak (opsional)
+            spriteNum = 1;
         }
 
-        // --- 3. INPUT HANDLING ---
-
-        // TOMBOL V: Interaksi Station (Cut, Cook, Serve, Storage)
+        // 4. Input Aksi
         if (keyH.actionPressed) {
             interactWithStation();
-
-            // Reset tombol hanya jika TIDAK sedang memotong (agar tidak spamming ambil bahan)
-            // Jika sedang memotong (BUSY), tombol dibiarkan true agar terdeteksi "ditahan"
             if (playerState != PlayerState.BUSY) {
                 keyH.actionPressed = false;
             }
         }
 
-        // TOMBOL C: Drop / Pick Up (Lantai)
         if (keyH.interactPressed) {
             interactWithFloor();
-            keyH.interactPressed = false; // Selalu reset karena drop/pick sekali tekan
+            keyH.interactPressed = false;
         }
 
-        // Switch Player
         if (keyH.switchPressed) {
             gp.playerM.switchPlayer();
             keyH.switchPressed = false;
         }
+
+        if (keyH.dashPressed) {
+            performDash();
+            keyH.dashPressed = false;
+        }
+
+        if (keyH.throwPressed) {
+            performThrow();
+            keyH.throwPressed = false;
+        }
+    }
+
+    // --- LOGIKA DASH (Refactor: Gunakan cChecker) ---
+    private void performDash() {
+        if (dashCooldown > 0) return;
+
+        // Loop per tile agar tidak tembus tembok tebal
+        for (int i = 0; i < DASH_DISTANCE * gp.tileSize; i += gp.tileSize) {
+            // Prediksi posisi maju 1 langkah tile
+            int tempX = pos.x;
+            int tempY = pos.y;
+
+            switch (direction) {
+                case "up" -> pos.y -= gp.tileSize;
+                case "down" -> pos.y += gp.tileSize;
+                case "left" -> pos.x -= gp.tileSize;
+                case "right" -> pos.x += gp.tileSize;
+            }
+
+            // Cek kolisi di posisi baru
+            collisionOn = false;
+            gp.cChecker.checkTile(this);
+            gp.cChecker.checkPlayer(this); // Cek nabrak teman juga saat dash
+
+            // Jika nabrak, kembalikan ke posisi sebelumnya dan berhenti
+            if (collisionOn) {
+                pos.x = tempX;
+                pos.y = tempY;
+                break;
+            }
+        }
+
+        System.out.println("DASH!");
+        dashCooldown = DASH_COOLDOWN_MAX;
+    }
+
+    // --- LOGIKA LEMPAR ---
+    private void performThrow() {
+        if (inventory == null) return;
+
+        if (inventory instanceof Ingredient) {
+            Ingredient ing = (Ingredient) inventory;
+            if (ing.state != IngredientState.RAW) {
+                System.out.println("Gagal Lempar: Bahan sudah diproses!");
+                return;
+            }
+        } else {
+            System.out.println("Gagal Lempar: Hanya bahan mentah yang bisa dilempar!");
+            return;
+        }
+
+        int throwDist = 3;
+        int targetX = pos.x;
+        int targetY = pos.y;
+
+        // Simulasi lintasan lemparan
+        for (int i = 1; i <= throwDist; i++) {
+            int checkX = pos.x;
+            int checkY = pos.y;
+
+            switch (direction) {
+                case "up" -> checkY -= (i * gp.tileSize);
+                case "down" -> checkY += (i * gp.tileSize);
+                case "left" -> checkX -= (i * gp.tileSize);
+                case "right" -> checkX += (i * gp.tileSize);
+            }
+
+            int col = (checkX + gp.tileSize/2) / gp.tileSize;
+            int row = (checkY + gp.tileSize/2) / gp.tileSize;
+
+            if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
+                Tile t = gp.tileM.worldTiles[col][row];
+                if (t.collision) {
+                    // Nabrak tembok -> jatuh di tile sebelumnya
+                    break;
+                } else {
+                    targetX = checkX;
+                    targetY = checkY;
+                }
+            }
+        }
+
+        // Cek apakah ada player lain di target untuk "Catch"
+        Player[] players = gp.playerM.getPlayers();
+        for (Player other : players) {
+            if (other != this && other != null) {
+                // Cek jarak sederhana
+                int dist = (int) Math.sqrt(Math.pow(other.pos.x - targetX, 2) + Math.pow(other.pos.y - targetY, 2));
+
+                // Jika lemparan mendarat dekat player lain (toleransi 1 tile)
+                if (dist < gp.tileSize) {
+                    if (other.inventory == null) {
+                        other.inventory = this.inventory;
+                        this.inventory = null;
+                        System.out.println("CATCH! Ditangkap oleh " + other);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Jika tidak ditangkap, jatuh ke lantai
+        gp.itemM.addItem(inventory, targetX + gp.itemSize/2, targetY + gp.itemSize/2);
+        System.out.println("Melempar " + inventory.name + "!");
+        inventory = null;
     }
 
     public void draw(Graphics2D g2) {
@@ -143,89 +273,63 @@ public class Player extends Entity {
         if (inventory != null) {
             int invX = pos.x + gp.itemSize / 2;
             int invY = pos.y;
-
             inventory.draw(g2, invX, invY);
         }
     }
 
-    // --- METHOD INTERAKSI KHUSUS STATION (Key V) ---
+    // --- METHOD INTERAKSI (Tidak Berubah) ---
     public void interactWithStation() {
         Tile targetTile = getTargetTile();
-
         if (targetTile == null) return;
 
-        // 1. Cutting Station
         if (targetTile instanceof CuttingStation) {
             ((CuttingStation) targetTile).interact(this);
         }
-        // 2. Ingredient Storage
         else if (targetTile instanceof IngredientStorage) {
-            System.out.println("Interaksi dengan Ingredient Storage");
-            ((IngredientStorage) targetTile).interact(this);
+            if (playerState == PlayerState.IDLE) {
+                ((IngredientStorage) targetTile).interact(this);
+            }
         }
-        // 3. Serving Counter
         else if (targetTile instanceof ServingCounter) {
             ((ServingCounter) targetTile).interact(this);
         }
-        // 4. Cooking Station (Jika ada)
         else if (targetTile instanceof CookingStation) {
-            System.out.println("Interaksi dengan Cook");
             ((CookingStation) targetTile).interact(this);
         }
         else if (targetTile instanceof PlateStorage) {
-            System.out.println("Interaksi dengan Storage");
             ((PlateStorage) targetTile).interact(this);
         }
         else if (targetTile instanceof AssemblyStation) {
-            System.out.println("Interaksi dengan Assembly Station");
             ((AssemblyStation) targetTile).interact(this);
         }
         else if (targetTile instanceof WashingStation) {
-            System.out.println("Interaksi dengan Washing Station");
             ((WashingStation) targetTile).interact(this);
-            playerState = PlayerState.BUSY;
-            gp.playerM.switchPlayer();
         }
         else if (targetTile instanceof WashingCounter) {
-            System.out.println("Interaksi dengan Washing Counter");
             ((WashingCounter) targetTile).interact(this);
         }
-        // 3. Trash Station
         else if (targetTile instanceof TrashStation) {
-            // Storage harus "sekali tekan", bukan "tahan"
-            // Kita pakai trick sederhana: hanya jalan jika player IDLE (baru tekan)
-            // Dan kita paksa interactPressed false setelah ambil agar tidak ambil beruntun
             if (playerState == PlayerState.IDLE) {
                 ((TrashStation) targetTile).interact(this);
                 keyH.interactPressed = false;
             }
-            return;
         }
     }
 
-
-
-    // --- METHOD INTERAKSI KHUSUS LANTAI (Key C) ---
     public void interactWithFloor() {
-        // Drop Logic
         if (inventory != null) {
-            // Cek apakah di depan tembok/station? (Opsional, tapi biasanya drop di koordinat player)
-            // Versi simple: Drop tepat di kaki/depan player
             gp.itemM.addItem(inventory, pos.x + gp.itemSize/2, pos.y + gp.itemSize);
             inventory = null;
-            System.out.println("Item dropped on floor.");
-        }
-        // Pick Up Logic
-        else {
-            Item foundItem = gp.itemM.getItemOnPlayer(this);
+        } else {
+            Item foundItem = gp.cChecker.checkItem(this); // Gunakan CollisionChecker!
             if (foundItem != null) {
                 inventory = foundItem;
+                gp.itemM.itemsOnFloor.remove(foundItem); // Pastikan item dihapus dari lantai
                 System.out.println("Item picked up from floor.");
             }
         }
     }
 
-    // Helper untuk mencari Tile di depan player
     private Tile getTargetTile() {
         int currentWorldX = pos.x + (gp.tileSize / 2);
         int currentWorldY = pos.y + (gp.tileSize / 2);
@@ -244,30 +348,6 @@ public class Player extends Entity {
 
         if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
             return gp.tileM.worldTiles[col][row];
-        }
-
-
-        // --- STEP 2: Cek Item di Lantai (Collision Based) ---
-        // Jika tidak ada meja, baru kita cek item
-
-        // A. DROP ITEM (Jika bawa item)
-        if (inventory != null ) {
-            // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
-            // Menggunakan pos.x asli, bukan grid
-            int itemX = pos.x + gp.itemSize / 2;
-            int itemY = pos.y + gp.itemSize;
-            gp.itemM.addItem(inventory, itemX, itemY);
-            inventory = null;
-        }
-        // B. PICK UP ITEM (Jika tangan kosong)
-        else {
-            // Gunakan metode tabrakan solidArea
-            Item foundItem = gp.itemM.getItemOnPlayer(this);
-
-            if (foundItem != null) {
-                inventory = foundItem;
-                System.out.println("Mengambil " + inventory.name);
-            }
         }
         return null;
     }
