@@ -46,11 +46,25 @@ public class OrderManager {
         Recipe sakanaMaki = new Recipe("Sakana Maki", 150, 60);
         sakanaMaki.addIngredient("nori", IngredientState.RAW);
         sakanaMaki.addIngredient("rice", IngredientState.COOKED);
-        sakanaMaki.addIngredient("fish", IngredientState.RAW); // Sesuai spec map A
+        sakanaMaki.addIngredient("fish", IngredientState.CHOPPED); // Sesuai spec map A
 
+        // 3. Fish Cucumber Roll
+        Recipe fishcucumberRoll = new Recipe("Fish Cucumber Roll", 150, 60);
+        fishcucumberRoll.addIngredient("nori", IngredientState.RAW);
+        fishcucumberRoll.addIngredient("rice", IngredientState.COOKED);
+        fishcucumberRoll.addIngredient("fish", IngredientState.CHOPPED); //
+        fishcucumberRoll.addIngredient("cucumber", IngredientState.CHOPPED); //
+
+        // 4. Ebi Maki
+        Recipe ebiMaki = new Recipe("Ebi Maki", 150, 60);
+        ebiMaki.addIngredient("nori", IngredientState.RAW);
+        ebiMaki.addIngredient("rice", IngredientState.COOKED);
+        ebiMaki.addIngredient("shrimp", IngredientState.CHOPPED); //
         // Masukkan ke daftar kemungkinan resep
         levelRecipes.add(kappaMaki);
         levelRecipes.add(sakanaMaki);
+        levelRecipes.add(ebiMaki);
+        levelRecipes.add(fishcucumberRoll);
     }
 
     public void update() {
