@@ -11,8 +11,8 @@ import java.io.IOException;
 public class MainMenuScene {
     GamePanel gp;
 
-    private final Rectangle playButton = new Rectangle(334, 200, 200, 60);
-    private final Rectangle exitButton = new Rectangle(334, 300, 200, 60);
+    private final Rectangle playButton = new Rectangle(334, 250, 200, 60);
+    private final Rectangle exitButton = new Rectangle(334, 350, 200, 60);
 
     private boolean playHover = false;
     private boolean exitHover = false;
@@ -30,12 +30,16 @@ public class MainMenuScene {
         gp.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                Point p = e.getPoint();
+                if (gp.gameState == GameState.MAINMENU) { // Tambahkan pengecekan state
+                    Point p = e.getPoint();
 
-                if (playButton.contains(p)) {
-                    gp.gameState = GameState.PLAYING;
-                } else if (exitButton.contains(p)) {
-                    System.exit(0);
+                    if (playButton.contains(p)) {
+                        // Aksi baru: Pindah ke layar pemilihan kesulitan
+                        gp.gameState = GameState.DIFFICULTY_SELECT;
+                        gp.repaint(); // Repaint untuk menampilkan DifficultyScene
+                    } else if (exitButton.contains(p)) {
+                        System.exit(0);
+                    }
                 }
             }
         });
@@ -44,15 +48,23 @@ public class MainMenuScene {
         gp.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
-                Point p = e.getPoint();
-                playHover = playButton.contains(p);
-                exitHover = exitButton.contains(p);
+                if (gp.gameState == GameState.MAINMENU) { // Tambahkan pengecekan state
+                    Point p = e.getPoint();
+                    boolean updated = false;
+
+                    if (playHover != playButton.contains(p)) { playHover = !playHover; updated = true; }
+                    if (exitHover != exitButton.contains(p)) { exitHover = !exitHover; updated = true; }
+
+                    if (updated) {
+                        gp.repaint(); // Panggil repaint agar efek hover terlihat
+                    }
+                }
             }
         });
     }
 
     public void update(){
-
+        // Tidak ada yang perlu diperbarui secara berkala di menu
     }
 
     public void draw(Graphics2D g2){

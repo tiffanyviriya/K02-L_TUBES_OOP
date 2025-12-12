@@ -23,7 +23,10 @@ public class GamePanel extends JPanel implements Runnable {
     public GameState gameState;
     PlayScene playScene = new PlayScene(this);
     MainMenuScene mainMenuScene = new MainMenuScene(this);
-    // --- TAMBAH DEKLARASI RESULT SCENE ---
+    // --- DEKLARASI DIFFICULTY SCENE BARU ---
+    public DifficultyScene difficultyScene = new DifficultyScene(this);
+    // ----------------------------------------
+    // --- TAMBAH DEKLARASI RESULT SCENE ---\
     public ResultScene resultScene = new ResultScene(this);
 
     Thread gameThread;
@@ -33,14 +36,18 @@ public class GamePanel extends JPanel implements Runnable {
     public TileManager tileM = new TileManager(this);
     public ItemManager itemM = new ItemManager(this);
     public PlayerManager playerM = new PlayerManager(this, keyH);
-    // ----------------------------------------------------
+    // ----------------------------------------------------\
     // START: Deklarasi Timer Baru
-    // ----------------------------------------------------
-    public UITimer uiTimer;
-    // ----------------------------------------------------
+    // ----------------------------------------------------\
+    // Nilai awal 120 detik (2 menit)
+    public UITimer uiTimer = new UITimer(this, 120);
+    // ----------------------------------------------------\
     // END: Deklarasi Timer Baru
-    // ----------------------------------------------------
+    // ----------------------------------------------------\
     public OrderManager orderM = new OrderManager(this);
+
+    double drawInterval = 1000000000.0/FPS; // 0.01666 seconds
+    double nextDrawTime = System.nanoTime() + drawInterval;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -49,10 +56,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
 
-        gameState = GameState.PLAYING;
-        // Inisialisasi Timer dengan waktu awal (misalnya 150 detik)
-        //TEST DOANG COBA 20 DETIK
-        uiTimer = new UITimer(this, 20);
+        // Atur state awal ke Main Menu
         gameState = GameState.MAINMENU;
     }
 
@@ -63,29 +67,25 @@ public class GamePanel extends JPanel implements Runnable {
 
     @Override
     public void run() {
-        double drawInterval = 1000000000/FPS;
-        double nextDrawTime = System.nanoTime() + drawInterval;
-        long lastTime = System.nanoTime(); // Waktu terakhir untuk perhitungan Delta Time
+
+        double lastTime = System.nanoTime();
+        double currentTime;
+        double deltaTime;
 
         while(gameThread != null) {
-            long currentTime = System.nanoTime();
-            // Delta time: Waktu yang telah berlalu sejak frame terakhir, dalam nanodetik
-            double deltaTime = (double) (currentTime - lastTime);
+            currentTime = System.nanoTime();
+            deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            if (gameState == GameState.PLAYING) {
-                update(deltaTime); // Meneruskan deltaTime ke update
-            // Perubahan GameState ke Result
-                if (uiTimer.isTimeUp()){
-                    gameState = GameState.RESULT;
-                    System.out.println("GAME OVER! Waktu habis, beralih ke RESULT.");
-                }
-            }
+            // 1. UPDATE
+            update(deltaTime);
 
-
+            // 2. DRAW
+            // Lakukan repaint (memanggil paintComponent)
             repaint();
 
             try {
+                // Atur interval tidur untuk mempertahankan FPS
                 double remainingTime = nextDrawTime - System.nanoTime();
                 remainingTime = remainingTime/1000000;
 
@@ -104,23 +104,14 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update(double deltaTime) {
-        playerM.update();
-        orderM.update();
-
-        // Panggil update pada objek timer
-        uiTimer.update(deltaTime);
-    }
-
-    /** KAYAKNYA GA PERLU
-     *  Ntar coba di buang sementara
-     */
-    public void update() {
-        if(gameState == GameState.MAINMENU){
-
+        if (gameState == GameState.PLAYING) {
+            playerM.update();
+            orderM.update();
+            // Panggil update pada objek timer
+            uiTimer.update(deltaTime);
         }
-        else if (gameState == GameState.PLAYING){
-            playScene.update();
-        }
+        // State lain seperti MAINMENU, DIFFICULTY_SELECT, PAUSE, dan RESULT tidak perlu update per frame
+        // kecuali ada animasi atau logika spesifik di scene tersebut.
     }
 
     @Override
@@ -131,6 +122,8 @@ public class GamePanel extends JPanel implements Runnable {
 
         if(gameState == GameState.MAINMENU){
             mainMenuScene.draw(g2);
+        } else if (gameState == GameState.DIFFICULTY_SELECT) {
+            difficultyScene.draw(g2); // Gambar Difficulty Scene
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
         } else if (gameState == GameState.RESULT) {  //Ganti State ke RESULT
@@ -141,4 +134,15 @@ public class GamePanel extends JPanel implements Runnable {
         g2.dispose();
     }
 
+    /** KAYAKNYA GA PERLU
+     * Ntar coba di buang sementara
+     */
+    public void update() {
+        if(gameState == GameState.MAINMENU){
+
+        }
+        else if (gameState == GameState.PLAYING){
+            playScene.update();
+        }
+    }
 }
