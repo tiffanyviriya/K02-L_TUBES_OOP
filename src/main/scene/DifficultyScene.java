@@ -117,7 +117,10 @@ public class DifficultyScene implements Scene{
             g2.drawImage(mapPreviewImage, imgX, imgY, imgW, imgH, null);
         }
 
-        g2.setFont(new Font("Monospaced", Font.BOLD, 40));
+        // 3. Judul (Kembali Ditengah Layar)
+        g2.setFont(new Font("Broadway", Font.BOLD, 40));
+
+        // Menggunakan tengah layar (gp.screenWidth / 2) sebagai titik tengah
         int screenCenterX = gp.screenWidth / 2;
 
         g2.setColor(Color.BLACK);
@@ -161,7 +164,7 @@ public class DifficultyScene implements Scene{
         g2.setStroke(new BasicStroke(3));
         g2.drawRoundRect(rect.x, rect.y, rect.width, rect.height, 20, 20);
 
-        g2.setFont(new Font("Poppins", Font.BOLD, 32));
+        g2.setFont(new Font("Broadway", Font.BOLD, 32));
         FontMetrics fm = g2.getFontMetrics();
         int tx = rect.x + (rect.width - fm.stringWidth(levelName)) / 2;
         int ty = rect.y + (rect.height + fm.getAscent()) / 2 - 10;
@@ -169,7 +172,7 @@ public class DifficultyScene implements Scene{
         g2.setColor(Color.BLACK);
         g2.drawString(levelName, tx, ty);
 
-        g2.setFont(new Font("Arial", Font.PLAIN, 12));
+        g2.setFont(new Font("Broadway", Font.PLAIN, 12));
         String subText = isCleared ? "CLEARED (Target: " + targetScore + ")" : "Target Score: " + targetScore;
 
         int subTx = rect.x + (rect.width - g2.getFontMetrics().stringWidth(subText)) / 2;
