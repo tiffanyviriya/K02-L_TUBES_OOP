@@ -55,6 +55,10 @@ public class Ingredient extends Item implements Preparable {
         else if (name.equalsIgnoreCase("nori")) {
             rawPath = "/Sprites_Overcooked/Sprites_Ingredients/nori.png";
         }
+        else if (name.equalsIgnoreCase("cucumber")) {
+            rawPath = "/Sprites_Overcooked/Sprites_Ingredients/cucumber.png";
+            choppedPath = "/Sprites_Overcooked/Sprites_Ingredients/chopped_cucumber.png";
+        }
 
         // 3. Load Gambar dengan Error Handling (Agar tidak invisible jika gagal)
         try {
