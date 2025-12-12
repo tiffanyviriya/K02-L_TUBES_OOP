@@ -24,25 +24,29 @@ public class GamePanel extends JPanel implements Runnable {
 
     int FPS = 60;
 
-    // Ubah akses gameState menjadi private agar dipaksa lewat setter (optional, tapi disarankan)
     public GameState gameState;
 
+    // Variabel Difficulty saat ini
+    public String currentDifficulty = "EASY";
+
+    // --- BARU: ScoreManager Session-Based ---
+    // Diinstansiasi di sini agar datanya tetap ada selama game berjalan,
+    // tapi hilang saat game ditutup.
+    public ScoreManager scoreM = new ScoreManager();
+
     // Scene objects
-    PlayScene playScene = new PlayScene(this);
-    MainMenuScene mainMenuScene = new MainMenuScene(this);
-    // --- DEKLARASI DIFFICULTY SCENE BARU ---
+    // Catatan: Pastikan konstruktor scene Anda menerima GamePanel (this)
+    public PlayScene playScene = new PlayScene(this);
+    public MainMenuScene mainMenuScene = new MainMenuScene(this);
     public DifficultyScene difficultyScene = new DifficultyScene(this);
-    // ----------------------------------------
-    // --- TAMBAH DEKLARASI RESULT SCENE ---\
     public ResultScene resultScene = new ResultScene(this);
-    PauseScene pauseScene = new PauseScene(this);
+    public PauseScene pauseScene = new PauseScene(this);
 
     Thread gameThread;
     public ScheduledExecutorService globalExecutor = Executors.newScheduledThreadPool(4);
     public KeyHandler keyH = new KeyHandler(this);
     public CollisionChecker cChecker = new CollisionChecker(this);
 
-    // --- PERUBAHAN 1: Ganti Sound manual dengan SoundManager ---
     public SoundManager soundM = new SoundManager();
 
     public TileManager tileM = new TileManager(this);
@@ -52,7 +56,7 @@ public class GamePanel extends JPanel implements Runnable {
     public UITimer uiTimer;
     public OrderManager orderM = new OrderManager(this);
 
-    double drawInterval = 1000000000.0/FPS; // 0.01666 seconds
+    double drawInterval = 1000000000.0/FPS;
     double nextDrawTime = System.nanoTime() + drawInterval;
 
     public GamePanel() {
@@ -66,6 +70,7 @@ public class GamePanel extends JPanel implements Runnable {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (gameState == GameState.MAINMENU) mainMenuScene.mousePressed(e);
+                    // DifficultyScene handle sendiri via listener internal atau panggil method
                 else if (gameState == GameState.PLAYING) playScene.mousePressed(e);
                 else if (gameState == GameState.PAUSE) pauseScene.mousePressed(e);
             }
@@ -82,32 +87,29 @@ public class GamePanel extends JPanel implements Runnable {
 
         uiTimer = new UITimer(this, 150);
 
-        // --- PERUBAHAN 2: Set state awal menggunakan method changeGameState ---
-        // Agar musik main menu langsung main saat game mulai
         changeGameState(GameState.MAINMENU);
     }
 
-    // --- PERUBAHAN 3: Method Khusus untuk Ganti State & Musik ---
-    // Panggil method ini setiap kali ingin ganti layar (misal dari tombol Play)
     public void changeGameState(GameState newState) {
         this.gameState = newState;
 
-        // Logika Ganti Musik Berdasarkan State
         switch (gameState) {
             case MAINMENU:
-                soundM.playMusic(0); // Mainkan lagu index 0 (Menu Theme)
+                soundM.playMusic(0);
                 break;
-
             case PLAYING:
                 soundM.stopMusic();
-                System.out.println("Musik berganti");
-                // soundM.playMusic(1); // Uncomment jika punya lagu in-game (index 1)
                 break;
+            case RESULT:
+                // Tidak ada musik khusus di result (opsional)
+                break;
+            default:
+                break;
+        }
 
-            case PAUSE:
-                // Biasanya pause tidak ganti lagu, atau volume dikecilkan
-                // Jadi biarkan kosong atau atur logika lain
-                break;
+        // Trigger logika hasil saat masuk Result Screen
+        if (gameState == GameState.RESULT) {
+            resultScene.processResult();
         }
     }
 
@@ -118,7 +120,6 @@ public class GamePanel extends JPanel implements Runnable {
 
     @Override
     public void run() {
-
         double lastTime = System.nanoTime();
         double currentTime;
         double deltaTime;
@@ -128,22 +129,15 @@ public class GamePanel extends JPanel implements Runnable {
             deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            // 1. UPDATE
             update(deltaTime);
-
-            // 2. DRAW
-            // Lakukan repaint (memanggil paintComponent)
             repaint();
 
             try {
-                // Atur interval tidur untuk mempertahankan FPS
                 double remainingTime = nextDrawTime - System.nanoTime();
                 remainingTime = remainingTime/1000000;
                 if(remainingTime < 0) remainingTime = 0;
                 Thread.sleep((long) remainingTime);
-
                 nextDrawTime  += drawInterval;
-
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -154,7 +148,6 @@ public class GamePanel extends JPanel implements Runnable {
         gameThread = null;
         if (globalExecutor != null && !globalExecutor.isShutdown()) {
             globalExecutor.shutdownNow();
-            System.out.println("Global Executor stopped.");
         }
     }
 
@@ -175,22 +168,18 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
 
-        // --- PERUBAHAN 4: Hapus logika playMusic dari sini! ---
-        // paintComponent hanya untuk menggambar (visual)
-
         if(gameState == GameState.MAINMENU){
             mainMenuScene.draw(g2);
         } else if (gameState == GameState.DIFFICULTY_SELECT) {
-            difficultyScene.draw(g2); // Gambar Difficulty Scene
+            difficultyScene.draw(g2);
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
         } else if (gameState == GameState.PAUSE) {
             playScene.draw(g2);
             pauseScene.draw(g2);
-        } else if (gameState == GameState.RESULT) {  //Ganti State ke RESULT
+        } else if (gameState == GameState.RESULT) {
             resultScene.draw(g2);
         }
         g2.dispose();
     }
-
 }

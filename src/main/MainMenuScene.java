@@ -10,7 +10,7 @@ import java.io.InputStream;
 public class MainMenuScene implements Scene {
 
     GamePanel gp;
-    public MainMenuMouseHandler mouseHandler; // Public agar bisa diakses jika perlu
+    public MainMenuMouseHandler mouseHandler;
 
     // UI Elements
     private Rectangle playButton;
@@ -23,61 +23,51 @@ public class MainMenuScene implements Scene {
     // Resources
     private BufferedImage backgroundImage;
     private BufferedImage buttonImage;
-    private Font pixelFont;
+    private Font pixelFont; // Masih disimpan di sini untuk referensi lokal scene ini
 
     public MainMenuScene(GamePanel gp) {
         this.gp = gp;
         this.mouseHandler = new MainMenuMouseHandler(this);
 
-        // -----------------------------------------------------------
-        // 1. Setup Posisi Tombol (Dinamis Tengah Layar)
-        // -----------------------------------------------------------
+        // 1. Setup Posisi Tombol
         int buttonWidth = 200;
         int buttonHeight = 60;
         int spacing = 40;
 
         int buttonX = (gp.screenWidth / 2) - (buttonWidth / 2);
-        int playButtonY = (gp.screenHeight / 2) - buttonHeight; // Sedikit ke atas
+        int playButtonY = (gp.screenHeight / 2) - buttonHeight;
         int exitButtonY = playButtonY + buttonHeight + spacing;
 
         playButton = new Rectangle(buttonX, playButtonY, buttonWidth, buttonHeight);
         exitButton = new Rectangle(buttonX, exitButtonY, buttonWidth, buttonHeight);
 
-        // -----------------------------------------------------------
-        // 2. Load Resources (Safe Loading)
-        // -----------------------------------------------------------
+        // 2. Load Resources
         loadResources();
     }
 
     private void loadResources() {
         try {
-            // Load Gambar
-            // Pastikan path: /res/ui/ atau /ui/ tergantung struktur folder src anda
+            // Load Gambar (Tetap di sini karena spesifik untuk scene ini)
             InputStream bgStream = getClass().getResourceAsStream("/ui/nimonscooked.png");
             InputStream btnStream = getClass().getResourceAsStream("/ui/buttonUI.png");
 
             if (bgStream != null) backgroundImage = ImageIO.read(bgStream);
             if (btnStream != null) buttonImage = ImageIO.read(btnStream);
 
-            // Load Font
-            InputStream fontStream = getClass().getResourceAsStream("/font/ByteBounce.ttf");
-            if (fontStream != null) {
-                pixelFont = Font.createFont(Font.TRUETYPE_FONT, fontStream).deriveFont(36f);
-            } else {
-                System.out.println("Warning: Custom font not found. Using default.");
-                pixelFont = new Font("Monospaced", Font.BOLD, 32);
-            }
-
-        } catch (IOException | FontFormatException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error loading resources. Using fallbacks.");
-            pixelFont = new Font("Monospaced", Font.BOLD, 32);
+            System.out.println("Error loading image resources.");
         }
+
+        // --- LOAD FONT VIA FONT MANAGER ---
+        // Kode menjadi jauh lebih bersih.
+        // Anda bisa memanggil ini di scene lain dengan ukuran berbeda jika mau.
+        pixelFont = FontManager.getPixelFont(36f);
     }
 
     @Override
     public void update() {
-        // Logika animasi menu bisa ditaruh di sini
+        // Logika animasi menu
     }
 
     @Override
@@ -95,9 +85,6 @@ public class MainMenuScene implements Scene {
         drawButton(g2, exitButton, "EXIT", exitHover);
     }
 
-    // --- Input Delegation (Penting!) ---
-    // Scene menerima input dari GamePanel, lalu memberikannya ke Handler
-
     @Override
     public void mousePressed(MouseEvent e) {
         mouseHandler.mousePressed(e);
@@ -108,10 +95,8 @@ public class MainMenuScene implements Scene {
         mouseHandler.mouseMoved(e);
     }
 
-    // --- Helper Methods ---
-
     private void drawButton(Graphics2D g2, Rectangle rect, String text, boolean hover) {
-        // Gambar Tombol (Image / Kotak Polos)
+        // Gambar Tombol
         if (buttonImage != null) {
             g2.drawImage(buttonImage, rect.x, rect.y, rect.width, rect.height, null);
         } else {
@@ -126,7 +111,8 @@ public class MainMenuScene implements Scene {
         }
 
         // Styling Font
-        g2.setFont(pixelFont);
+        g2.setFont(pixelFont); // Menggunakan font yang didapat dari FontManager
+
         FontMetrics fm = g2.getFontMetrics();
         int textX = rect.x + (rect.width - fm.stringWidth(text)) / 2;
         int textY = rect.y + (rect.height - fm.getHeight()) / 2 + fm.getAscent();
@@ -144,7 +130,6 @@ public class MainMenuScene implements Scene {
         g2.drawString(text, textX, textY);
     }
 
-    // --- Getters & Setters ---
     public Rectangle getPlayButton() { return playButton; }
     public Rectangle getExitButton() { return exitButton; }
     public void setPlayHover(boolean hover) { this.playHover = hover; }
