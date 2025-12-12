@@ -22,8 +22,10 @@ public class KitchenUtensil extends Item {
     public boolean isBurned = false;
 
     // Cache Gambar
-    private BufferedImage imgPanEmpty, imgPanShrimp;
-    private BufferedImage imgPotEmpty, imgPotRice;
+    // Pan Images
+    private BufferedImage imgPanEmpty, imgPanRaw, imgPanCooked, imgPanBurned;
+    // Pot Images
+    private BufferedImage imgPotEmpty, imgPotRaw, imgPotCooked, imgPotBurned;
 
     public KitchenUtensil(GamePanel gp, String name) {
         super(gp);
@@ -37,13 +39,23 @@ public class KitchenUtensil extends Item {
 
     private void loadAllImages() {
         try {
-            // Load Gambar Wajan
+            // --- Load Gambar Wajan (Pan) ---
             imgPanEmpty = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan.png"));
-            imgPanShrimp = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp_Cooked.png"));
+            // Pan with Shrimp (Raw)
+            imgPanRaw = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp.png"));
+            // Pan with Shrimp (Cooked)
+            imgPanCooked = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp_Cooked.png"));
+            // Pan Burned
+            imgPanBurned = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp_Burned.png"));
 
-            // Load Gambar Panci
+            // --- Load Gambar Panci (Pot) ---
             imgPotEmpty = ImageIO.read(getClass().getResourceAsStream("/utensils/Boiling_Pot.png"));
-            imgPotRice = ImageIO.read(getClass().getResourceAsStream("/utensils/Boiling_Pot_With_Rice.png"));
+            // Pot with Grain/Boiling (Raw State) - Menggunakan gambar 'boil' untuk proses memasak
+            imgPotRaw = ImageIO.read(getClass().getResourceAsStream("/utensils/boiling_pot_boil.png"));
+            // Pot Rice (Cooked State)
+            imgPotCooked = ImageIO.read(getClass().getResourceAsStream("/utensils/Boiling_Pot_With_Rice.png"));
+            // Pot Burned
+            imgPotBurned = ImageIO.read(getClass().getResourceAsStream("/utensils/boiling_pot_gosong.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,89 +63,123 @@ public class KitchenUtensil extends Item {
     }
 
     public void updateLook() {
+        // --- LOGIKA TAMPILAN PAN ---
         if (name.equalsIgnoreCase("Pan")) {
-            if (hasIngredient("shrimp")) {
-                image = imgPanShrimp;
-            } else {
+            if (ingredients.isEmpty()) {
                 image = imgPanEmpty;
-            }
-        }
-        else if (name.equalsIgnoreCase("Pot")) {
-            if (hasIngredient("cucumber")) {
-                image = imgPotRice;
+            } else if (isBurned) {
+                image = imgPanBurned;
+            } else if (isCooked) {
+                image = imgPanCooked; // Pan Shrimp Cooked
             } else {
+                image = imgPanRaw; // Pan with Shrimp (Raw)
+            }
+        }
+        // --- LOGIKA TAMPILAN POT ---
+        else if (name.equalsIgnoreCase("Pot")) {
+            if (ingredients.isEmpty()) {
                 image = imgPotEmpty;
+            } else if (isBurned) {
+                image = imgPotBurned;
+            } else if (isCooked) {
+                image = imgPotCooked; // Pot Rice
+            } else {
+                image = imgPotRaw; // Boiling Pot with Grain
             }
         }
-    }
-
-    private boolean hasIngredient(String ingredientName) {
-        for (Ingredient i : ingredients) {
-            if (i.name.equalsIgnoreCase(ingredientName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public void addIngredient(Ingredient in) {
-        // HAPUS @Override KARENA Item.java TIDAK PUNYA METHOD INI
-        if (!isCooked && !isBurned) {
-            ingredients.add(in);
-            System.out.println("Bahan " + in.name + " masuk ke " + name);
-            updateLook();
+        // Cek jika alat sudah terisi atau sudah matang/gosong, tidak bisa tambah lagi
+        if (!ingredients.isEmpty()) {
+            gp.soundM.playSE(6); // Error sound
+            return;
+        }
+
+        // --- VALIDASI KHUSUS PAN ---
+        if (name.equalsIgnoreCase("Pan")) {
+            // Hanya terima Shrimp
+            if (in.name.equalsIgnoreCase("shrimp")) {
+                ingredients.add(in);
+                System.out.println("Shrimp added to Pan");
+                gp.soundM.playSE(2); // Play Sound: Cooking Pan
+                updateLook();
+            } else {
+                // Bahan salah
+                System.out.println("Pan hanya menerima Shrimp!");
+                gp.soundM.playSE(6); // Play Sound: Error
+            }
+        }
+        // --- VALIDASI KHUSUS POT ---
+        else if (name.equalsIgnoreCase("Pot")) {
+            // Hanya terima Rice (Grain)
+            if (in.name.equalsIgnoreCase("rice")) {
+                ingredients.add(in);
+                System.out.println("Rice added to Pot");
+                gp.soundM.playSE(1); // Play Sound: Boiling Pot
+                updateLook();
+            } else {
+                // Bahan salah
+                System.out.println("Pot hanya menerima Rice!");
+                gp.soundM.playSE(6); // Play Sound: Error
+            }
         }
     }
-
 
     public void cook() {
         if (!ingredients.isEmpty()) {
             cookingProgress++;
+
+            // Cek Status Burned
             if (cookingProgress >= TIME_TO_BURN) {
-                isBurned = true;
-                isCooked = false;
-                for(Ingredient i : ingredients) i.burn();
+                if (!isBurned) { // Hanya update jika status berubah
+                    isBurned = true;
+                    isCooked = false;
+                    for(Ingredient i : ingredients) i.burn();
+                    updateLook(); // Ganti gambar ke gosong
+                    System.out.println(name + " Gosong!");
+                }
             }
+            // Cek Status Cooked
             else if (cookingProgress >= TIME_TO_COOK) {
-                isCooked = true;
-                for(Ingredient i : ingredients) i.cook();
+                if (!isCooked && !isBurned) { // Hanya update jika status berubah
+                    isCooked = true;
+                    for(Ingredient i : ingredients) i.cook();
+                    updateLook(); // Ganti gambar ke matang
+                    System.out.println(name + " Matang!");
+                }
             }
         }
     }
 
-    // Di dalam class KitchenUtensil
-
-public ArrayList<Ingredient> serveToPlate() {
-    // Hanya bisa disajikan jika SUDAH MATANG dan TIDAK GOSONG
-    if (isCooked && !isBurned) {
-        ArrayList<Ingredient> servedFood = new ArrayList<>(ingredients);
-        ingredients.clear();
-        cookingProgress = 0;
-        isCooked = false;
-        isBurned = false; // Reset status burned juga
-        updateLook();
-        return servedFood;
+    public ArrayList<Ingredient> serveToPlate() {
+        // Hanya bisa disajikan jika SUDAH MATANG dan TIDAK GOSONG
+        if (isCooked && !isBurned) {
+            ArrayList<Ingredient> servedFood = new ArrayList<>(ingredients);
+            ingredients.clear();
+            cookingProgress = 0;
+            isCooked = false;
+            isBurned = false;
+            updateLook(); // Reset ke gambar kosong
+            return servedFood;
+        }
+        return null;
     }
-    return null;
-}
 
     @Override
     public void draw(Graphics2D g2, int x, int y) {
-        // --- PERUBAHAN DI SINI ---
-        // 1. Gambar Utensil dengan ukuran TILESIZE (48x48) agar besar
-        // Kita tidak pakai super.draw() karena itu pakai itemSize (kecil)
+        // 1. Gambar Utensil dengan ukuran TILESIZE (agar besar)
         if (image != null) {
             g2.drawImage(image, x + 8, y + 8, gp.tileSize-16, gp.tileSize-16, null);
         }
 
-        // 2. Fallback Visual: Gambar bahan di tengah jika ada isinya
-        // (Jika gambar utensil masih kosong/default, tapi ada isinya)
+        // 2. Fallback Visual: (Opsional, karena kita sudah punya gambar full state)
+        // Kode di bawah menggambar icon kecil bahan jika gambar utensil masih default/kosong
+        // tapi ada isinya. Berguna jika gambar state belum ter-load sempurna.
         if (!ingredients.isEmpty()) {
             if (image == imgPanEmpty || image == imgPotEmpty) {
                 Ingredient ig = ingredients.get(0);
                 if (ig.image != null) {
-                    // Gambar kecil di tengah panci
-                    // Koordinat +12 biar di tengah (48 - 24) / 2
                     g2.drawImage(ig.image, x + 8, y + 8, 24, 24, null);
                 }
             }
@@ -143,7 +189,6 @@ public ArrayList<Ingredient> serveToPlate() {
         if (!ingredients.isEmpty()) {
             int barWidth = 32;
             int barHeight = 5;
-            // Posisi bar di atas panci
             int screenX = x + 8;
             int screenY = y - 10;
 
