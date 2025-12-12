@@ -105,20 +105,15 @@ public class KitchenUtensil extends Item {
 public ArrayList<Ingredient> serveToPlate() {
     // Hanya bisa disajikan jika SUDAH MATANG dan TIDAK GOSONG
     if (isCooked && !isBurned) {
-        // Salin isi panci ke variabel sementara
         ArrayList<Ingredient> servedFood = new ArrayList<>(ingredients);
-        
-        // Bersihkan panci
         ingredients.clear();
         cookingProgress = 0;
         isCooked = false;
-        
-        // Update visual panci jadi kosong
+        isBurned = false; // Reset status burned juga
         updateLook();
-        
-        return servedFood; // Kembalikan bahan makanannya
+        return servedFood;
     }
-    return null; // Gagal (belum matang/gosong)
+    return null;
 }
 
     @Override

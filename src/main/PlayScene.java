@@ -26,18 +26,18 @@ public class PlayScene implements Scene {
     public void update(){
         gp.playerM.update();
         gp.orderM.update();
+        gp.tileM.update();
         // uiTimer diupdate di GamePanel karena butuh deltaTime
     }
 
     @Override
     public void draw(Graphics2D g2){
-        gp.tileM.draw(g2);
+        gp.tileM.draw(g2); // Draw tile layer paling bawah
         gp.itemM.draw(g2);
         gp.playerM.draw(g2);
         gp.uiTimer.draw(g2);
-        gp.orderM.draw(g2);
+        gp.orderM.draw(g2); // UI digambar terakhir (paling atas)
 
-        // Gambar Tombol Pause
         drawPauseButton(g2);
     }
 

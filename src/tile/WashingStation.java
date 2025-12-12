@@ -35,16 +35,10 @@ public class WashingStation extends Tile implements Runnable {
         this.myCol = col;
         this.myRow = row;
         this.collision = true;
-        tryingOut(); // Mempertahankan method debug Anda
         loadImage();
 
         // PENTING: Mendaftar ke Executor Global
         startWashingTask();
-    }
-
-    private void tryingOut(){
-        // Menambahkan piring dummy untuk test
-        dirtyStack.add(new Plate(gp));
     }
 
     private void loadImage() {
@@ -101,7 +95,6 @@ public class WashingStation extends Tile implements Runnable {
     }
 
     // --- HELPER METHODS ---
-
     private void startWashing(Entity player) {
         this.activePlayer = player;
         if (player instanceof Player) {
