@@ -30,6 +30,11 @@ public class GamePanel extends JPanel implements Runnable {
     // Scene objects
     PlayScene playScene = new PlayScene(this);
     MainMenuScene mainMenuScene = new MainMenuScene(this);
+    // --- DEKLARASI DIFFICULTY SCENE BARU ---
+    public DifficultyScene difficultyScene = new DifficultyScene(this);
+    // ----------------------------------------
+    // --- TAMBAH DEKLARASI RESULT SCENE ---\
+    public ResultScene resultScene = new ResultScene(this);
     PauseScene pauseScene = new PauseScene(this);
 
     Thread gameThread;
@@ -46,6 +51,9 @@ public class GamePanel extends JPanel implements Runnable {
 
     public UITimer uiTimer;
     public OrderManager orderM = new OrderManager(this);
+
+    double drawInterval = 1000000000.0/FPS; // 0.01666 seconds
+    double nextDrawTime = System.nanoTime() + drawInterval;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
@@ -110,24 +118,32 @@ public class GamePanel extends JPanel implements Runnable {
 
     @Override
     public void run() {
-        double drawInterval = 1000000000/FPS;
-        double nextDrawTime = System.nanoTime() + drawInterval;
-        long lastTime = System.nanoTime();
+
+        double lastTime = System.nanoTime();
+        double currentTime;
+        double deltaTime;
 
         while(gameThread != null) {
-            long currentTime = System.nanoTime();
-            double deltaTime = (double) (currentTime - lastTime);
+            currentTime = System.nanoTime();
+            deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
+            // 1. UPDATE
             update(deltaTime);
+
+            // 2. DRAW
+            // Lakukan repaint (memanggil paintComponent)
             repaint();
 
             try {
+                // Atur interval tidur untuk mempertahankan FPS
                 double remainingTime = nextDrawTime - System.nanoTime();
                 remainingTime = remainingTime/1000000;
                 if(remainingTime < 0) remainingTime = 0;
                 Thread.sleep((long) remainingTime);
+
                 nextDrawTime  += drawInterval;
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -164,12 +180,17 @@ public class GamePanel extends JPanel implements Runnable {
 
         if(gameState == GameState.MAINMENU){
             mainMenuScene.draw(g2);
+        } else if (gameState == GameState.DIFFICULTY_SELECT) {
+            difficultyScene.draw(g2); // Gambar Difficulty Scene
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
         } else if (gameState == GameState.PAUSE) {
             playScene.draw(g2);
             pauseScene.draw(g2);
+        } else if (gameState == GameState.RESULT) {  //Ganti State ke RESULT
+            resultScene.draw(g2);
         }
         g2.dispose();
     }
+
 }

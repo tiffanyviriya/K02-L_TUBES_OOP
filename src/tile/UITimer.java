@@ -14,7 +14,7 @@ public class UITimer {
 
     private GamePanel gp;
 
-    // --- Variabel Timer ---
+    // --- Variabel Timer ---\
     // Waktu total untuk level (misalnya, 2 menit = 120 detik)
     public int gameTimeSeconds;
 
@@ -28,13 +28,22 @@ public class UITimer {
     }
 
     /**
+     * Metode baru untuk mereset waktu permainan, dipanggil saat level dimulai
+     * dari DifficultyScene.
+     */
+    public void resetTime(int newTimeSeconds) {
+        this.gameTimeSeconds = newTimeSeconds;
+        this.timerAccumulator = 0;
+    }
+
+    /**
      * Memperbarui status timer berdasarkan waktu yang telah berlalu (deltaTime).
      * Metode ini harus dipanggil di GamePanel.update().
      * * @param deltaTime Waktu yang telah berlalu sejak frame terakhir dalam nanodetik.
      */
     public void update(double deltaTime) {
-        // Hanya kurangi waktu jika masih ada waktu tersisa
-        if (gameTimeSeconds > 0) {
+        // Hanya kurangi waktu jika sedang bermain dan waktu masih ada
+        if (gp.gameState == GameState.PLAYING && gameTimeSeconds > 0) {
             timerAccumulator += deltaTime;
 
             // Jika akumulator melebihi 1 detik
@@ -46,11 +55,16 @@ public class UITimer {
             // Cek apakah waktu sudah habis
             if (gameTimeSeconds <= 0) {
                 gameTimeSeconds = 0; // Pastikan tidak negatif
-                // Mengubah status game, meniru level Overcooked! selesai
-                gp.gameState = GameState.PAUSE;
+                // Mengubah status game ke RESULT
+                gp.gameState = GameState.RESULT;
                 System.out.println("WAKTU HABIS! LEVEL SELESAI.");
             }
         }
+    }
+
+    //Mengembalikan true jika waktu habis
+    public boolean isTimeUp(){
+        return gameTimeSeconds <= 0;
     }
 
     /**
@@ -59,6 +73,11 @@ public class UITimer {
      * * @param g2 Objek Graphics2D untuk menggambar.
      */
     public void draw(Graphics2D g2) {
+
+        // HANYA tampilkan timer saat state PLAYING
+        if (gp.gameState != GameState.PLAYING) {
+            return;
+        }
 
         // Konversi detik menjadi format Menit:Detik (MM:SS)
         int minutes = gameTimeSeconds / 60;

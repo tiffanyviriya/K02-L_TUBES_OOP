@@ -11,19 +11,15 @@ public class MainMenuScene implements Scene {
 
     GamePanel gp;
 
-    // Tombol-tombol menu
-    private Rectangle playButton;
-    private Rectangle exitButton;
+    private final Rectangle playButton = new Rectangle(334, 200, 200, 60);
+    private final Rectangle exitButton = new Rectangle(334, 300, 200, 60);
 
-    // Status hover
     private boolean playHover = false;
     private boolean exitHover = false;
 
-    // Aset Gambar
     private BufferedImage backgroundImage;
     private BufferedImage buttonImage;
 
-    // Aset Font Custom
     private Font pixelFont;
 
     private MainMenuMouseHandler mouseHandler;
@@ -52,7 +48,15 @@ public class MainMenuScene implements Scene {
             // Pastikan path sesuai dengan struktur folder project Anda
             backgroundImage = ImageIO.read(getClass().getResourceAsStream("/ui/nimonscooked.png"));
             buttonImage = ImageIO.read(getClass().getResourceAsStream("/ui/buttonUI.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
+        gp.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (gp.gameState == GameState.MAINMENU) { // Tambahkan pengecekan state
+                    Point p = e.getPoint();
             // Load Custom Font
             // Ganti "/font/pixel.ttf" dengan nama file font yang Anda miliki
             InputStream is = getClass().getResourceAsStream("/font/ByteBounce.ttf");
@@ -70,10 +74,40 @@ public class MainMenuScene implements Scene {
             // Fallback font aman jika terjadi error
             pixelFont = new Font("Monospaced", Font.BOLD, 32);
         }
+                    if (playButton.contains(p)) {
+                        // Aksi baru: Pindah ke layar pemilihan kesulitan
+                        gp.gameState = GameState.DIFFICULTY_SELECT;
+                        gp.repaint(); // Repaint untuk menampilkan DifficultyScene
+                    } else if (exitButton.contains(p)) {
+                        System.exit(0);
+                    }
+                }
+            }
+        });
 
         mouseHandler = new MainMenuMouseHandler(this);
     }
 
+        gp.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                if (gp.gameState == GameState.MAINMENU) { // Tambahkan pengecekan state
+                    Point p = e.getPoint();
+                    boolean updated = false;
+
+                    if (playHover != playButton.contains(p)) { playHover = !playHover; updated = true; }
+                    if (exitHover != exitButton.contains(p)) { exitHover = !exitHover; updated = true; }
+
+                    if (updated) {
+                        gp.repaint(); // Panggil repaint agar efek hover terlihat
+                    }
+                }
+            }
+        });
+    }
+
+    public void update(){
+        // Tidak ada yang perlu diperbarui secara berkala di menu
     @Override
     public void update() {
         // Logika update animasi menu
