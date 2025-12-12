@@ -38,23 +38,23 @@ public class OrderManager {
 
     private void setupRecipes() {
         // Setup resep (Kode sama seperti sebelumnya)
-        Recipe kappaMaki = new Recipe("Kappa Maki", 120, 60);
+        Recipe kappaMaki = new Recipe("Kappa Maki", 200, 60);
         kappaMaki.addIngredient("nori", IngredientState.RAW);
         kappaMaki.addIngredient("rice", IngredientState.COOKED);
         kappaMaki.addIngredient("cucumber", IngredientState.CHOPPED);
 
-        Recipe sakanaMaki = new Recipe("Sakana Maki", 150, 60);
+        Recipe sakanaMaki = new Recipe("Sakana Maki", 220, 60);
         sakanaMaki.addIngredient("nori", IngredientState.RAW);
         sakanaMaki.addIngredient("rice", IngredientState.COOKED);
         sakanaMaki.addIngredient("fish", IngredientState.CHOPPED);
 
-        Recipe fishcucumberRoll = new Recipe("Fish Cucumber Roll", 150, 60);
+        Recipe fishcucumberRoll = new Recipe("Fish Cucumber Roll", 220, 60);
         fishcucumberRoll.addIngredient("nori", IngredientState.RAW);
         fishcucumberRoll.addIngredient("rice", IngredientState.COOKED);
         fishcucumberRoll.addIngredient("fish", IngredientState.CHOPPED);
         fishcucumberRoll.addIngredient("cucumber", IngredientState.CHOPPED);
 
-        Recipe ebiMaki = new Recipe("Ebi Maki", 150, 60);
+        Recipe ebiMaki = new Recipe("Ebi Maki", 200, 60);
         ebiMaki.addIngredient("nori", IngredientState.RAW);
         ebiMaki.addIngredient("rice", IngredientState.COOKED);
         ebiMaki.addIngredient("shrimp", IngredientState.COOKED);

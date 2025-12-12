@@ -107,33 +107,49 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void changeGameState(GameState newState) {
-
-        // Pengecualian: PAUSE tidak mereset game
-        if (newState == GameState.PAUSE || (this.gameState == GameState.PAUSE && newState == GameState.PLAYING)) {
-            this.gameState = newState;
-            return;
-        }
-
-        // Jika masuk ke RESULT, jangan reset dulu (karena butuh skor)
-        if (newState == GameState.RESULT) {
-            this.gameState = newState;
-            resultScene.processResult();
-            return;
-        }
-
-        // Logic Utama: Reset saat kembali ke MAIN MENU (dari Result atau Pause)
-        if (newState == GameState.MAINMENU) {
-            resetGame();
-            soundM.playMusic(0);
-        }
-
         this.gameState = newState;
 
-        switch (gameState) {
-            case PLAYING:
-                soundM.stopMusic();
+        switch (newState) {
+            case MAINMENU:
+                // [UBAH] Masuk Menu -> Mainkan Nimonsbeat, Matikan Ambience
+                soundM.stopAmbience();
+                soundM.playMusic(0);
                 break;
-            default:
+
+            case DIFFICULTY_SELECT:
+                // (Opsional) Tetap mainkan Nimonsbeat di layar pilih level
+                if (!soundM.isMusicPlaying()) {
+                    soundM.playMusic(0);
+                }
+                break;
+
+            case PLAYING:
+                // [UBAH] Masuk Game -> Matikan Nimonsbeat, Mainkan Suara Resto
+                soundM.stopMusic();     // Stop lagu menu
+                soundM.playAmbience(5); // Play suara orang berisik (Looping)
+                break;
+
+            case PAUSE:
+                // Tidak ada perubahan suara saat pause (tetap bunyi resto)
+                break;
+
+            case RESULT:
+                // [UBAH] Selesai -> Matikan semua suara background
+                soundM.stopMusic();
+                soundM.stopAmbience();
+                soundM.stopAllCookingSounds();
+                soundM.stopSELoop();
+
+                // Mainkan suara Menang/Kalah
+                if (scoreM.isLevelCleared(currentDifficulty)) {
+                    soundM.playWinSound();
+                } else {
+                    soundM.playLoseSound();
+                }
+                break;
+
+            case RECIPE_BOOK:
+                // Tidak ada perubahan
                 break;
         }
     }
@@ -176,9 +192,12 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+
+
     public void update(double deltaTime) {
         if (gameState == GameState.MAINMENU) {
             mainMenuScene.update();
+            soundM.playMusic(0);
         }
         else if (gameState == GameState.PLAYING) {
             playScene.update();
@@ -190,6 +209,7 @@ public class GamePanel extends JPanel implements Runnable {
             recipeBookScene.update();
         }
     }
+
 
     @Override
     public void paintComponent(Graphics g) {
