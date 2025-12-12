@@ -28,6 +28,12 @@ public class TileManager {
         setupDefaultUtensils();
     }
 
+    public void reset() {
+        // Setup ulang tiles akan menghapus state lama (item di meja, masakan di panci)
+        setupTiles();
+        setupDefaultUtensils();
+    }
+
     public void loadMap(String mapfile) {
         try {
             InputStream is = getClass().getResourceAsStream(mapfile);

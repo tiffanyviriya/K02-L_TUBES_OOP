@@ -28,21 +28,17 @@ public class GamePanel extends JPanel implements Runnable {
 
     public GameState gameState;
 
-    // Variabel Difficulty saat ini
     public String currentDifficulty = "EASY";
 
-    // --- BARU: ScoreManager Session-Based ---
-    // Diinstansiasi di sini agar datanya tetap ada selama game berjalan,
-    // tapi hilang saat game ditutup.
     public ScoreManager scoreM = new ScoreManager();
 
     // Scene objects
-    // Catatan: Pastikan konstruktor scene Anda menerima GamePanel (this)
     public PlayScene playScene = new PlayScene(this);
     public MainMenuScene mainMenuScene = new MainMenuScene(this);
     public DifficultyScene difficultyScene = new DifficultyScene(this);
     public ResultScene resultScene = new ResultScene(this);
     public PauseScene pauseScene = new PauseScene(this);
+    public TutorialScene tutorialScene = new TutorialScene(this);
 
     Thread gameThread;
     public ScheduledExecutorService globalExecutor = Executors.newScheduledThreadPool(4);
@@ -72,18 +68,19 @@ public class GamePanel extends JPanel implements Runnable {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (gameState == GameState.MAINMENU) mainMenuScene.mousePressed(e);
-                    // DifficultyScene handle sendiri via listener internal atau panggil method
-                else if (gameState == GameState.TUTORIAL) tutorialScene.mousePressed(e);
                 else if (gameState == GameState.PLAYING) playScene.mousePressed(e);
                 else if (gameState == GameState.PAUSE) pauseScene.mousePressed(e);
+                else if (gameState == GameState.DIFFICULTY_SELECT) difficultyScene.mousePressed(e);
+                else if (gameState == GameState.RESULT) resultScene.mousePressed(e);
             }
 
             @Override
             public void mouseMoved(MouseEvent e) {
                 if (gameState == GameState.MAINMENU) mainMenuScene.mouseMoved(e);
-                else if (gameState == GameState.TUTORIAL) tutorialScene.mouseMoved(e);
                 else if (gameState == GameState.PLAYING) playScene.mouseMoved(e);
                 else if (gameState == GameState.PAUSE) pauseScene.mouseMoved(e);
+                else if (gameState == GameState.DIFFICULTY_SELECT) difficultyScene.mouseMoved(e);
+                else if (gameState == GameState.RESULT) resultScene.mouseMoved(e);
             }
         };
         this.addMouseListener(globalMouseHandler);
@@ -94,26 +91,45 @@ public class GamePanel extends JPanel implements Runnable {
         changeGameState(GameState.MAINMENU);
     }
 
+    // --- METHOD RESET SENTRAL ---
+    public void resetGame() {
+        System.out.println("Resetting Game...");
+        orderM.reset();
+        itemM.reset();
+        playerM.reset();
+        tileM.reset();
+        uiTimer.resetTime(0);
+    }
+
     public void changeGameState(GameState newState) {
+
+        // Pengecualian: PAUSE tidak mereset game
+        if (newState == GameState.PAUSE || (this.gameState == GameState.PAUSE && newState == GameState.PLAYING)) {
+            this.gameState = newState;
+            return;
+        }
+
+        // Jika masuk ke RESULT, jangan reset dulu (karena butuh skor)
+        if (newState == GameState.RESULT) {
+            this.gameState = newState;
+            resultScene.processResult();
+            return;
+        }
+
+        // Logic Utama: Reset saat kembali ke MAIN MENU (dari Result atau Pause)
+        if (newState == GameState.MAINMENU) {
+            resetGame();
+            soundM.playMusic(0);
+        }
+
         this.gameState = newState;
 
         switch (gameState) {
-            case MAINMENU:
-                soundM.playMusic(0);
-                break;
             case PLAYING:
                 soundM.stopMusic();
                 break;
-            case RESULT:
-                // Tidak ada musik khusus di result (opsional)
-                break;
             default:
                 break;
-        }
-
-        // Trigger logika hasil saat masuk Result Screen
-        if (gameState == GameState.RESULT) {
-            resultScene.processResult();
         }
     }
 
@@ -159,10 +175,6 @@ public class GamePanel extends JPanel implements Runnable {
         if (gameState == GameState.MAINMENU) {
             mainMenuScene.update();
         }
-        // Tambahkan update untuk TUTORIAL (walaupun mungkin kosong)
-        else if (gameState == GameState.TUTORIAL) {
-            tutorialScene.update();
-        }
         else if (gameState == GameState.PLAYING) {
             playScene.update();
             uiTimer.update(deltaTime);
@@ -180,8 +192,6 @@ public class GamePanel extends JPanel implements Runnable {
             mainMenuScene.draw(g2);
         } else if (gameState == GameState.DIFFICULTY_SELECT) {
             difficultyScene.draw(g2);
-        } else if (gameState == GameState.TUTORIAL) { // Draw TutorialScene
-            tutorialScene.draw(g2);
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
         } else if (gameState == GameState.PAUSE) {
@@ -189,6 +199,8 @@ public class GamePanel extends JPanel implements Runnable {
             pauseScene.draw(g2);
         } else if (gameState == GameState.RESULT) {
             resultScene.draw(g2);
+        } else if (gameState == GameState.TUTORIAL) {
+            tutorialScene.draw(g2);
         }
         g2.dispose();
     }

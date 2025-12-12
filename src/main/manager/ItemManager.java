@@ -15,6 +15,11 @@ public class ItemManager {
         this.gp = gp;
     }
 
+    // Method reset untuk membersihkan lantai
+    public void reset() {
+        itemsOnFloor.clear();
+    }
+
     public void addItem(Item item, int x, int y) {
         item.worldX = x;
         item.worldY = y;

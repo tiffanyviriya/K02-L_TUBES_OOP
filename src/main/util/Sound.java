@@ -15,6 +15,7 @@ public class Sound {
     public Sound()
     {
         soundURL[0] = getClass().getResource("/sound/nimonsbeat.wav");
+        soundURL[3] = getClass().getResource("/sound/Serving(_).wav");
         soundURL[6] = getClass().getResource("/sound/Error_Action.wav");
     }
 

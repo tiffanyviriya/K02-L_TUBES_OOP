@@ -6,26 +6,25 @@ import main.handler.DifficultySceneMouseHandler;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-public class DifficultyScene {
+public class DifficultyScene implements Scene{
     protected GamePanel gp;
     private DifficultySceneMouseHandler mouseHandler;
 
     private BufferedImage backgroundImage;
-    private BufferedImage mapPreviewImage; // Gambar tambahan
+    private BufferedImage mapPreviewImage;
 
     public static final String LEVEL_EASY = "EASY";
     public static final String LEVEL_MEDIUM = "MEDIUM";
     public static final String LEVEL_HARD = "HARD";
 
-    // Posisi tombol
     private final Rectangle easyButton;
     private final Rectangle mediumButton;
     private final Rectangle hardButton;
 
-    // Status hover
     private boolean easyHover = false;
     private boolean mediumHover = false;
     private boolean hardHover = false;
@@ -36,8 +35,6 @@ public class DifficultyScene {
     private final int buttonWidth = 200;
     private final int buttonHeight = 60;
     private final int buttonSpacing = 115;
-
-    // Posisi X untuk elemen UI (Tombol) agar rata kiri
     private final int uiLeftAlignX = 120;
 
     public DifficultyScene(GamePanel gp) {
@@ -52,21 +49,20 @@ public class DifficultyScene {
             System.err.println("Gambar tidak ditemukan (cek path folder /ui/).");
         }
 
-        // Menghitung posisi Y agar tombol terpusat secara vertikal
         int totalHeight = (buttonHeight * 3) + (buttonSpacing * 2);
         int startY = gp.screenHeight / 2 - totalHeight / 2 + (titleYPosition / 2);
 
-        // Posisi X tombol digeser ke kiri (uiLeftAlignX)
         this.easyButton = new Rectangle(uiLeftAlignX, startY, buttonWidth, buttonHeight);
         this.mediumButton = new Rectangle(uiLeftAlignX, startY + buttonHeight + buttonSpacing, buttonWidth, buttonHeight);
         this.hardButton = new Rectangle(uiLeftAlignX, startY + (buttonHeight + buttonSpacing) * 2, buttonWidth, buttonHeight);
 
         mouseHandler = new DifficultySceneMouseHandler(this, gp);
-        gp.addMouseListener(mouseHandler);
-        gp.addMouseMotionListener(mouseHandler);
     }
 
     public void startGame(String difficulty) {
+        // [MODIFIKASI] Reset game SEBELUM memulai, agar bersih dari sisa sesi sebelumnya
+        gp.resetGame();
+
         gp.currentDifficulty = difficulty;
 
         int timeLimitSeconds = 0;
@@ -100,8 +96,12 @@ public class DifficultyScene {
     public void setMediumHover(boolean h) { this.mediumHover = h; }
     public void setHardHover(boolean h) { this.hardHover = h; }
 
+    @Override
+    public void update() {
+
+    }
+
     public void draw(Graphics2D g2) {
-        // 1. Gambar Background Utama
         if (backgroundImage != null) {
             g2.drawImage(backgroundImage, 0, 0, gp.screenWidth, gp.screenHeight, null);
         } else {
@@ -109,38 +109,40 @@ public class DifficultyScene {
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
         }
 
-        // 2. Gambar Dekorasi Tambahan (422x302) di sebelah kanan
         if (mapPreviewImage != null) {
             int imgW = 422;
             int imgH = 302;
-            // Posisi X di sebelah kanan layar (margin dari kanan sekitar 100px agar seimbang dengan tombol kiri)
             int imgX = gp.screenWidth - imgW - 50;
-            int imgY = (gp.screenHeight - imgH) / 2 + 20; // Sedikit offset Y agar visual seimbang
+            int imgY = (gp.screenHeight - imgH) / 2 + 20;
             g2.drawImage(mapPreviewImage, imgX, imgY, imgW, imgH, null);
         }
 
-        // 3. Judul (Kembali Ditengah Layar)
         g2.setFont(new Font("Monospaced", Font.BOLD, 40));
-
-        // Menggunakan tengah layar (gp.screenWidth / 2) sebagai titik tengah
         int screenCenterX = gp.screenWidth / 2;
 
-        // Shadow Judul
         g2.setColor(Color.BLACK);
         int shadowX = getXforCenteredText(g2, titleText, screenCenterX) + 2;
         int shadowY = titleYPosition + 35 + 2;
         g2.drawString(titleText, shadowX, shadowY);
 
-        // Teks Judul Utama
         g2.setColor(Color.YELLOW);
         int textX = getXforCenteredText(g2, titleText, screenCenterX);
         int textY = titleYPosition + 35;
         g2.drawString(titleText, textX, textY);
 
-        // 4. Tombol Difficulty
         drawLevelButton(g2, easyButton, LEVEL_EASY, easyHover);
         drawLevelButton(g2, mediumButton, LEVEL_MEDIUM, mediumHover);
         drawLevelButton(g2, hardButton, LEVEL_HARD, hardHover);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        mouseHandler.mousePressed(e);
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        mouseHandler.mouseMoved(e);
     }
 
     private void drawLevelButton(Graphics2D g2, Rectangle rect, String levelName, boolean hover) {
@@ -175,9 +177,6 @@ public class DifficultyScene {
         g2.drawString(subText, subTx, subTy);
     }
 
-    /**
-     * Helper untuk mendapatkan X agar teks berada di tengah relatif terhadap titik tertentu.
-     */
     public int getXforCenteredText(Graphics2D g2, String text, int centerXPoint) {
         FontMetrics fm = g2.getFontMetrics();
         int length = fm.stringWidth(text);

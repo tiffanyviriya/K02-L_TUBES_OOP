@@ -5,10 +5,11 @@ import main.handler.ResultSceneMouseHandler;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-public class ResultScene {
+public class ResultScene implements Scene{
 
     protected GamePanel gp;
     private ResultSceneMouseHandler mouseHandler;
@@ -57,6 +58,11 @@ public class ResultScene {
 
     public Rectangle getMenuButton() { return menuButton; }
     public void setMenuHover(boolean hover) { this.menuHover = hover; }
+
+    @Override
+    public void update() {
+
+    }
 
     public void draw(Graphics2D g2) {
         if (backgroundImage != null) {
@@ -113,6 +119,16 @@ public class ResultScene {
         drawButton(g2, menuButton, "MAIN MENU", menuHover);
     }
 
+    @Override
+    public void mousePressed(MouseEvent e) {
+        mouseHandler.mousePressed(e);
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        mouseHandler.mouseMoved(e);
+    }
+
     private void drawCenteredText(Graphics2D g2, String text, int y, int centerX) {
         FontMetrics fm = g2.getFontMetrics();
         int x = centerX - fm.stringWidth(text) / 2;
@@ -133,4 +149,6 @@ public class ResultScene {
         int y = rect.y + (rect.height + fm.getAscent()) / 2 - 5;
         g2.drawString(text, x, y);
     }
+
+
 }

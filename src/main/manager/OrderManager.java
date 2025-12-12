@@ -16,7 +16,7 @@ public class OrderManager {
     protected GamePanel gp;
 
     public ArrayList<Order> activeOrders = new ArrayList<>();
-    public ArrayList<Recipe> levelRecipes = new ArrayList<>(); // Public agar bisa diakses Dish.Builder
+    public ArrayList<Recipe> levelRecipes = new ArrayList<>();
 
     private final int MAX_ORDERS = 5;
     public int score = 0;
@@ -26,6 +26,14 @@ public class OrderManager {
     public OrderManager(GamePanel gp) {
         this.gp = gp;
         setupRecipes();
+    }
+
+    // Method reset untuk memulai sesi baru
+    public void reset() {
+        activeOrders.clear();
+        score = 0;
+        failedOrders = 0;
+        spawnTimer = 0;
     }
 
     private void setupRecipes() {
@@ -99,10 +107,8 @@ public class OrderManager {
         }
     }
 
-    // --- LOGIKA VALIDASI ORDER BERDASARKAN BAHAN ---
-    // Menerima daftar string bahan (misal: "fish_CHOPPED") dari piring
+    // --- LOGIKA VALIDASI ORDER ---
     public void checkServing(ArrayList<String> plateIngredients) {
-        // Jika piring kosong, abaikan
         if (plateIngredients.isEmpty()) return;
 
         boolean matchFound = false;
@@ -110,13 +116,10 @@ public class OrderManager {
         for (int i = 0; i < activeOrders.size(); i++) {
             Order order = activeOrders.get(i);
 
-            // Cek apakah bahan di piring cocok dengan resep order ini
             if (isRecipeMatch(order.recipe, plateIngredients)) {
                 System.out.println("Order Selesai: " + order.recipe.name);
                 score += order.recipe.reward;
-
-                // Tambahkan suara poin jika ada
-                gp.soundM.playSE(3); // Asumsi indeks 3 adalah 'Poin.wav'
+                gp.soundM.playSE(3);
 
                 activeOrders.remove(i);
                 reindexOrders();
@@ -128,27 +131,21 @@ public class OrderManager {
         if (!matchFound) {
             System.out.println("Makanan Salah! Penalti -50.");
             score -= 50;
-            // Tambahkan suara error jika ada
-            gp.soundM.playSE(6); // Asumsi indeks 6 adalah 'Error_Action.wav'
+            gp.soundM.playSE(6);
         }
     }
 
-    // Helper: Mencocokkan bahan piring dengan resep
     private boolean isRecipeMatch(Recipe recipe, ArrayList<String> plateContents) {
-        // Jumlah bahan harus sama persis
         if (recipe.requiredIngredients.size() != plateContents.size()) return false;
-
-        // Gunakan copy list agar aman saat remove
         ArrayList<String> tempPlate = new ArrayList<>(plateContents);
-
         for (String req : recipe.requiredIngredients) {
             if (tempPlate.contains(req)) {
                 tempPlate.remove(req);
             } else {
-                return false; // Bahan wajib tidak ditemukan
+                return false;
             }
         }
-        return true; // Semua bahan cocok
+        return true;
     }
 
     public void draw(Graphics2D g2) {
