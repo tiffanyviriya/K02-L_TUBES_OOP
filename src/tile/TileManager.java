@@ -69,7 +69,7 @@ public class TileManager {
                     break;
                 case 1: // Wall
                     worldTiles[col][row] = new Tile(gp);
-                    setupImage(worldTiles[col][row], "/tiles/wall_tile.png", true);
+                    setupImage(worldTiles[col][row], "/tiles/wallbirulagi.png", true);
                     break;
                 case 2: // Cutting Station
                     worldTiles[col][row] = new CuttingStation(gp);
@@ -114,6 +114,51 @@ public class TileManager {
                     break;
                 case 13: // Jika angka 10 ada di map file, itu adalah Trash Station
                     worldTiles[col][row] = new TrashStation(gp);
+                    break;
+                case 14:
+                    worldTiles[col][row] = new Tile(gp);
+                    // Pastikan nama file gambarnya sesuai
+                    setupImage(worldTiles[col][row], "/tiles/floor_kuning.png", false);
+                    break;
+                case 17:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/floor_biru.png", false);
+                    break;
+                case 18:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/birugelep.png", false);
+                    break;
+                case 19:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningbirusetengahhh.png", false);
+                    break;
+                case 20:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningkananbawahh.png", false);
+                    break;
+                case 21:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningkiribawahh.png", false);
+                    break;
+                case 22:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningkiriatass.png", false);
+                    break;
+                case 23:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningkirii.png", false);
+                    break;
+                case 24:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningkanann.png", false);
+                    break;
+                case 25:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningatasss.png", false);
+                    break;
+                case 26:
+                    worldTiles[col][row] = new Tile(gp);
+                    setupImage(worldTiles[col][row], "/tiles/kuningkananatas.png", false);
                     break;
                 default: // Default floor
                     worldTiles[col][row] = new Tile(gp);

@@ -29,10 +29,10 @@ public class AssemblyStation extends Tile {
         try {
             if (type.equals("vertical")) {
                 // Pastikan nama file sesuai dengan yang ada di folder res Anda
-                path = "/stations/assembly-vertikal.png";
+                path = "/stations/vertikal.png";
             } else {
                 // Default ke horizontal
-                path = "/stations/assembly-horizontal.png";
+                path = "/stations/horizontal.png";
             }
 
             image = ImageIO.read(getClass().getResourceAsStream(path));

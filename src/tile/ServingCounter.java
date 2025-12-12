@@ -36,7 +36,7 @@ public class ServingCounter extends Tile {
     private void loadCounterImage() {
         try {
             // Gunakan gambar serving counter atau wall sementara
-            image = ImageIO.read(getClass().getResourceAsStream("/tiles/wall1.png"));
+            image = ImageIO.read(getClass().getResourceAsStream("/stations/servingcounter.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
