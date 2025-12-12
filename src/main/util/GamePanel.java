@@ -73,6 +73,7 @@ public class GamePanel extends JPanel implements Runnable {
             public void mousePressed(MouseEvent e) {
                 if (gameState == GameState.MAINMENU) mainMenuScene.mousePressed(e);
                     // DifficultyScene handle sendiri via listener internal atau panggil method
+                else if (gameState == GameState.TUTORIAL) tutorialScene.mousePressed(e);
                 else if (gameState == GameState.PLAYING) playScene.mousePressed(e);
                 else if (gameState == GameState.PAUSE) pauseScene.mousePressed(e);
             }
@@ -80,6 +81,7 @@ public class GamePanel extends JPanel implements Runnable {
             @Override
             public void mouseMoved(MouseEvent e) {
                 if (gameState == GameState.MAINMENU) mainMenuScene.mouseMoved(e);
+                else if (gameState == GameState.TUTORIAL) tutorialScene.mouseMoved(e);
                 else if (gameState == GameState.PLAYING) playScene.mouseMoved(e);
                 else if (gameState == GameState.PAUSE) pauseScene.mouseMoved(e);
             }
@@ -157,6 +159,10 @@ public class GamePanel extends JPanel implements Runnable {
         if (gameState == GameState.MAINMENU) {
             mainMenuScene.update();
         }
+        // Tambahkan update untuk TUTORIAL (walaupun mungkin kosong)
+        else if (gameState == GameState.TUTORIAL) {
+            tutorialScene.update();
+        }
         else if (gameState == GameState.PLAYING) {
             playScene.update();
             uiTimer.update(deltaTime);
@@ -174,6 +180,8 @@ public class GamePanel extends JPanel implements Runnable {
             mainMenuScene.draw(g2);
         } else if (gameState == GameState.DIFFICULTY_SELECT) {
             difficultyScene.draw(g2);
+        } else if (gameState == GameState.TUTORIAL) { // Draw TutorialScene
+            tutorialScene.draw(g2);
         } else if (gameState == GameState.PLAYING) {
             playScene.draw(g2);
         } else if (gameState == GameState.PAUSE) {
