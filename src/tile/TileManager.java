@@ -13,7 +13,6 @@ import main.util.GamePanel;
 public class TileManager {
 
     GamePanel gp;
-    // GANTI: Kita pakai array 2D Tile untuk merepresentasikan dunia nyata
     public Tile[][] worldTiles;
     public int mapTileNum[][];
 
@@ -74,7 +73,7 @@ public class TileManager {
                 case 2: // Cutting Station
                     worldTiles[col][row] = new CuttingStation(gp);
                     break;
-                case 3: // Ingredient Storage (Cucumber) - Contoh
+                case 3: // Ingredient Storage (Cucumber)
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
                     break;
                 case 9:
@@ -98,12 +97,10 @@ public class TileManager {
                 case 6: // Plate Storage
                     worldTiles[col][row] = new PlateStorage(gp);
                     break;
-
-                // [PERBAIKAN UTAMA DI SINI]
                 case 7: // Assembly Station (Horizontal)
                     worldTiles[col][row] = new AssemblyStation(gp, "horizontal");
                     break;
-                case 8: // Assembly Station (Vertical) - [BARU]
+                case 8: // Assembly Station (Vertical)
                     worldTiles[col][row] = new AssemblyStation(gp, "vertical");
                     break;
                 case 15:
@@ -112,12 +109,11 @@ public class TileManager {
                 case 16:
                     worldTiles[col][row] = new WashingCounter(gp);
                     break;
-                case 13: // Jika angka 10 ada di map file, itu adalah Trash Station
+                case 13: // Trash Station
                     worldTiles[col][row] = new TrashStation(gp);
                     break;
                 case 14:
                     worldTiles[col][row] = new Tile(gp);
-                    // Pastikan nama file gambarnya sesuai
                     setupImage(worldTiles[col][row], "/tiles/floor_kuning.png", false);
                     break;
                 case 17:
@@ -209,6 +205,10 @@ public class TileManager {
                 else if (currentTile instanceof ServingCounter) {
                     ((ServingCounter) currentTile).update();
                 }
+                // --- TAMBAHAN BARU ---
+                else if (currentTile instanceof CuttingStation) {
+                    ((CuttingStation) currentTile).update();
+                }
             }
         }
     }
@@ -223,14 +223,12 @@ public class TileManager {
 
             Tile currentTile = worldTiles[col][row];
 
-            // Panggil method draw khusus untuk setiap tipe station
             if (currentTile instanceof CuttingStation) {
                 ((CuttingStation)currentTile).draw(g2, x, y);
             }
             else if (currentTile instanceof CookingStation) {
                 ((CookingStation)currentTile).draw(g2, x, y);
             }
-            // 3. TAMBAHKAN INI: Cek Assembly Station
             else if (currentTile instanceof AssemblyStation) {
                 ((AssemblyStation)currentTile).draw(g2, x, y);
             }
@@ -246,7 +244,6 @@ public class TileManager {
             else if (currentTile instanceof WashingCounter) {
                 ((WashingCounter)currentTile).draw(g2, x, y);
             }
-            // 4. Default Tile (Lantai/Tembok biasa)
             else if (currentTile != null && currentTile.image != null) {
                 g2.drawImage(currentTile.image, x, y, gp.tileSize, gp.tileSize, null);
             }

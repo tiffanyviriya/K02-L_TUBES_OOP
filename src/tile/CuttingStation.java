@@ -1,12 +1,12 @@
 package tile;
 
 import environment.entity.Entity;
+import environment.entity.Player;
+import environment.entity.PlayerState;
 import environment.food_related.Ingredient;
 import environment.food_related.IngredientState;
 import environment.item.Item;
 import main.util.GamePanel;
-import environment.entity.PlayerState;
-import environment.entity.Player;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -14,34 +14,30 @@ import java.io.IOException;
 
 public class CuttingStation extends Tile {
 
-    // Item yang ditaruh di atas station
     public Item itemOnTop = null;
 
-    // Progress bar variable
+    // Siapa yang sedang menggunakan station ini?
+    private Entity activePlayer = null;
+
     private int currentProgress = 0;
     private final int TIME_TO_CUT = 180; // 3 detik x 60 FPS
 
     public CuttingStation(GamePanel gp) {
         super(gp);
-        this.collision = true; // Player tidak bisa menembus meja
+        this.collision = true;
         loadStationImage();
     }
 
     private void loadStationImage() {
         try {
-            // GANTI baris ini:
-            // image = ImageIO.read(getClass().getResourceAsStream("/tiles/OOPtile.png"));
-
-            // MENJADI arah ke file gambar baru:
             image = ImageIO.read(getClass().getResourceAsStream("/stations/cutting_station.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Method ini dipanggil terus menerus selama tombol interact ditekan
+    @Override
     public void interact(Entity player) {
-
         // KASUS 1: Menaruh Item (Syarat: Meja kosong, Tangan player isi)
         if (itemOnTop == null && player.inventory != null) {
             itemOnTop = player.inventory;
@@ -53,7 +49,6 @@ public class CuttingStation extends Tile {
         // KASUS 2: Interaksi dengan Item di Meja
         if (itemOnTop != null) {
 
-            // Cek apakah item adalah ingredient mentah (RAW)
             boolean isRawIngredient = false;
             if (itemOnTop instanceof Ingredient) {
                 if (((Ingredient) itemOnTop).state == IngredientState.RAW) {
@@ -61,82 +56,117 @@ public class CuttingStation extends Tile {
                 }
             }
 
-            // A. LOGIKA MEMOTONG (Syarat: Item RAW, Tangan Kosong)
+            // A. LOGIKA CUTTING (TOGGLE ON/OFF)
             if (isRawIngredient && player.inventory == null) {
-                if (player instanceof Player) {
-                    ((Player) player).playerState = PlayerState.BUSY;
+
+                // Jika Station SEDANG DIPAKAI orang lain -> Abaikan
+                if (activePlayer != null && activePlayer != player) {
+                    System.out.println("Station sedang digunakan chef lain!");
+                    return;
                 }
 
-                // Tambah progress
-                currentProgress++;
-
-                // Debug log (opsional, muncul tiap 1 detik)
-                if (currentProgress % 60 == 0) {
-                    System.out.println("Memotong... " + (currentProgress/60) + " detik");
-                }
-
-                // Cek apakah selesai
-                if (currentProgress >= TIME_TO_CUT) {
-                    ((Ingredient) itemOnTop).chop();
-                    currentProgress = 0;
-
-                    // CASTING LAGI DISINI
-                    if (player instanceof Player) {
-                        ((Player) player).playerState = PlayerState.IDLE;
-                    }
-                    System.out.println("Selesai memotong!");
+                // TOGGLE LOGIC
+                if (activePlayer == null) {
+                    // --- MULAI MEMOTONG (START) ---
+                    startCutting(player);
+                } else {
+                    // --- BERHENTI MEMOTONG (STOP) ---
+                    stopCutting();
                 }
             }
 
-            // B. LOGIKA MENGAMBIL (Syarat: Tangan Kosong, Bukan sedang memotong/Bahan sudah jadi)
-            // Kita tambahkan pengecekan: Jika tombol baru saja ditekan (bukan ditahan) atau item sudah jadi
+            // B. MENGAMBIL ITEM
             else if (player.inventory == null) {
-                // Jika item sudah CHOPPED atau bukan Ingredient, ambil.
-                // Jika item masih RAW tapi player ingin ambil (batal potong),
-                // ini agak tricky kalau pakai tombol yang sama.
-                // Sesuai spec: Interact untuk memotong.
-                // Kita asumsikan kalau item sudah CHOPPED baru bisa diambil,
-                // ATAU player harus lepas tombol dulu baru tekan lagi untuk ambil (perlu logika KeyHandler advanced).
+                // Jangan ambil jika sedang dipotong orang lain
+                if (activePlayer != null && activePlayer != player) return;
 
-                // Simpelnya: Kalau sudah chopped, ambil.
-                if (!isRawIngredient) {
-                    player.inventory = itemOnTop;
-                    itemOnTop = null;
-                    currentProgress = 0;
-                    System.out.println("Mengambil hasil potongan");
-                }
+                // Stop dulu kalau sedang jalan
+                stopCutting();
+
+                player.inventory = itemOnTop;
+                itemOnTop = null;
+                currentProgress = 0; // Reset progress saat diambil
+                System.out.println("Mengambil item.");
             }
         }
     }
 
-    // Method visualisasi progress bar
-    public void draw(Graphics2D g2, int x, int y) {
-        // Gambar Meja
-        g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
+    // --- LOGIKA UPDATE (Jalan Otomatis) ---
+    public void update() {
+        // Jika ada player yang aktif memotong, jalankan progress
+        if (activePlayer != null && itemOnTop != null) {
 
-        // Gambar Item di atas meja
+            // Pastikan player terkunci (BUSY)
+            if (activePlayer instanceof Player) {
+                ((Player) activePlayer).playerState = PlayerState.BUSY;
+            }
+
+            currentProgress++;
+
+            if (currentProgress >= TIME_TO_CUT) {
+                finishCutting();
+            }
+        }
+        // Safety: Jika item diambil paksa atau hilang
+        else if (activePlayer != null && itemOnTop == null) {
+            stopCutting();
+        }
+    }
+
+    // --- HELPER METHODS ---
+    private void startCutting(Entity player) {
+        activePlayer = player;
+        // currentProgress = 0; // Jangan reset jika ingin melanjutkan sisa potongan
+        if (player instanceof Player) {
+            ((Player) player).playerState = PlayerState.BUSY;
+        }
+        System.out.println("Mulai memotong...");
+    }
+
+    private void stopCutting() {
+        if (activePlayer instanceof Player) {
+            ((Player) activePlayer).playerState = PlayerState.IDLE;
+        }
+        activePlayer = null;
+        System.out.println("Berhenti memotong/Pause.");
+    }
+
+    private void finishCutting() {
+        if (itemOnTop instanceof Ingredient) {
+            ((Ingredient) itemOnTop).chop();
+        }
+        currentProgress = 0;
+        stopCutting();
+        System.out.println("Selesai memotong!");
+    }
+
+    public void draw(Graphics2D g2, int x, int y) {
+        if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
+
         if (itemOnTop != null) {
             g2.drawImage(itemOnTop.image, x + 12, y + 12, gp.itemSize, gp.itemSize, null);
 
-            // Gambar Progress Bar (Hanya jika ada progress dan belum selesai)
-            if (currentProgress > 0 && currentProgress < TIME_TO_CUT) {
+            if (currentProgress > 0) {
                 int barWidth = 32;
                 int barHeight = 6;
                 int screenX = x + 8;
                 int screenY = y - 10;
 
-                // Background Merah
                 g2.setColor(Color.RED);
                 g2.fillRect(screenX, screenY, barWidth, barHeight);
 
-                // Foreground Hijau (Sesuai persentase)
                 int greenBar = (int) (((double)currentProgress / TIME_TO_CUT) * barWidth);
                 g2.setColor(Color.GREEN);
                 g2.fillRect(screenX, screenY, greenBar, barHeight);
 
-                // Border Hitam
                 g2.setColor(Color.BLACK);
                 g2.drawRect(screenX, screenY, barWidth, barHeight);
+
+                // Indikator visual jika sedang aktif
+                if (activePlayer != null) {
+                    g2.setColor(Color.YELLOW);
+                    g2.drawRect(screenX - 2, screenY - 2, barWidth + 4, barHeight + 4);
+                }
             }
         }
     }

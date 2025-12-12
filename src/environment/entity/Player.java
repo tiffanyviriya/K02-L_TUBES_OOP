@@ -63,64 +63,52 @@ public class Player extends Entity {
     }
 
     public void update() {
-        // --- 1. LOGIKA HOLD & BUSY (Cutting) ---
-        // Menggunakan tombol V (actionPressed)
-        if (playerState == PlayerState.BUSY) {
-            // Jika tombol V dilepas saat sedang memotong -> BERHENTI
-            if (!keyH.actionPressed) {
-                playerState = PlayerState.IDLE;
-            } else {
-                // Jika tombol V ditahan -> LANJUT MEMOTONG
-                interactWithStation();
-            }
-            return; // Jangan jalankan kode movement jika sedang busy
-        }
 
-        // --- 2. PERGERAKAN ---
-        if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
-            if (keyH.upPressed) direction = "up";
-            else if (keyH.downPressed) direction = "down";
-            else if (keyH.leftPressed) direction = "left";
-            else if (keyH.rightPressed) direction = "right";
+        // --- 1. PERGERAKAN (Hanya jika IDLE) ---
+        // Jika BUSY (sedang memotong/mencuci), player tidak bisa gerak.
+        if (playerState == PlayerState.IDLE) {
+            if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
+                if (keyH.upPressed) direction = "up";
+                else if (keyH.downPressed) direction = "down";
+                else if (keyH.leftPressed) direction = "left";
+                else if (keyH.rightPressed) direction = "right";
 
-            collisionOn = false;
-            gp.cChecker.checkTile(this);
+                collisionOn = false;
+                gp.cChecker.checkTile(this);
 
-            if (!collisionOn) {
-                switch (direction) {
-                    case "up" -> pos.y -= speed;
-                    case "down" -> pos.y += speed;
-                    case "left" -> pos.x -= speed;
-                    case "right" -> pos.x += speed;
+                if (!collisionOn) {
+                    switch (direction) {
+                        case "up" -> pos.y -= speed;
+                        case "down" -> pos.y += speed;
+                        case "left" -> pos.x -= speed;
+                        case "right" -> pos.x += speed;
+                    }
+                }
+
+                spriteCounter++;
+                if(spriteCounter > 12) {
+                    if(spriteNum == 1) spriteNum = 2;
+                    else if(spriteNum == 2) spriteNum = 3;
+                    else if(spriteNum == 3) spriteNum = 1;
+                    spriteCounter = 0;
                 }
             }
-
-            spriteCounter++;
-            if(spriteCounter > 12) {
-                if(spriteNum == 1) spriteNum = 2;
-                else if(spriteNum == 2) spriteNum = 3;
-                else if(spriteNum == 3) spriteNum = 1;
-                spriteCounter = 0;
-            }
         }
 
-        // --- 3. INPUT HANDLING ---
+        // --- 2. INPUT HANDLING ---
 
-        // TOMBOL V: Interaksi Station (Cut, Cook, Serve, Storage)
+        // TOMBOL V: Interaksi Station
+        // Kita izinkan interaksi meskipun BUSY, agar bisa "Stop Cutting" atau "Stop Washing"
         if (keyH.actionPressed) {
             interactWithStation();
-
-            // Reset tombol hanya jika TIDAK sedang memotong (agar tidak spamming ambil bahan)
-            // Jika sedang memotong (BUSY), tombol dibiarkan true agar terdeteksi "ditahan"
-            if (playerState != PlayerState.BUSY) {
-                keyH.actionPressed = false;
-            }
+            keyH.actionPressed = false; // Reset agar jadi "Sekali Tekan" (Toggle)
         }
 
         // TOMBOL C: Drop / Pick Up (Lantai)
-        if (keyH.interactPressed) {
+        // Hanya bisa jika IDLE
+        if (keyH.interactPressed && playerState == PlayerState.IDLE) {
             interactWithFloor();
-            keyH.interactPressed = false; // Selalu reset karena drop/pick sekali tekan
+            keyH.interactPressed = false;
         }
 
         // Switch Player
@@ -148,74 +136,49 @@ public class Player extends Entity {
         }
     }
 
-    // --- METHOD INTERAKSI KHUSUS STATION (Key V) ---
     public void interactWithStation() {
         Tile targetTile = getTargetTile();
-
         if (targetTile == null) return;
 
-        // 1. Cutting Station
         if (targetTile instanceof CuttingStation) {
             ((CuttingStation) targetTile).interact(this);
         }
-        // 2. Ingredient Storage
         else if (targetTile instanceof IngredientStorage) {
-            System.out.println("Interaksi dengan Ingredient Storage");
             ((IngredientStorage) targetTile).interact(this);
         }
-        // 3. Serving Counter
         else if (targetTile instanceof ServingCounter) {
             ((ServingCounter) targetTile).interact(this);
         }
-        // 4. Cooking Station (Jika ada)
         else if (targetTile instanceof CookingStation) {
-            System.out.println("Interaksi dengan Cook");
             ((CookingStation) targetTile).interact(this);
         }
         else if (targetTile instanceof PlateStorage) {
-            System.out.println("Interaksi dengan Storage");
             ((PlateStorage) targetTile).interact(this);
         }
         else if (targetTile instanceof AssemblyStation) {
-            System.out.println("Interaksi dengan Assembly Station");
             ((AssemblyStation) targetTile).interact(this);
         }
         else if (targetTile instanceof WashingStation) {
-            System.out.println("Interaksi dengan Washing Station");
+            // Washing Station Logic: Toggle BUSY handled by station or here?
+            // Biasanya WashingStation juga punya toggle sendiri.
             ((WashingStation) targetTile).interact(this);
-            playerState = PlayerState.BUSY;
-            gp.playerM.switchPlayer();
         }
         else if (targetTile instanceof WashingCounter) {
-            System.out.println("Interaksi dengan Washing Counter");
             ((WashingCounter) targetTile).interact(this);
         }
-        // 3. Trash Station
         else if (targetTile instanceof TrashStation) {
-            // Storage harus "sekali tekan", bukan "tahan"
-            // Kita pakai trick sederhana: hanya jalan jika player IDLE (baru tekan)
-            // Dan kita paksa interactPressed false setelah ambil agar tidak ambil beruntun
             if (playerState == PlayerState.IDLE) {
                 ((TrashStation) targetTile).interact(this);
-                keyH.interactPressed = false;
             }
-            return;
         }
     }
 
-
-
-    // --- METHOD INTERAKSI KHUSUS LANTAI (Key C) ---
     public void interactWithFloor() {
-        // Drop Logic
         if (inventory != null) {
-            // Cek apakah di depan tembok/station? (Opsional, tapi biasanya drop di koordinat player)
-            // Versi simple: Drop tepat di kaki/depan player
             gp.itemM.addItem(inventory, pos.x + gp.itemSize/2, pos.y + gp.itemSize);
             inventory = null;
             System.out.println("Item dropped on floor.");
         }
-        // Pick Up Logic
         else {
             Item foundItem = gp.itemM.getItemOnPlayer(this);
             if (foundItem != null) {
@@ -225,7 +188,6 @@ public class Player extends Entity {
         }
     }
 
-    // Helper untuk mencari Tile di depan player
     private Tile getTargetTile() {
         int currentWorldX = pos.x + (gp.tileSize / 2);
         int currentWorldY = pos.y + (gp.tileSize / 2);
@@ -244,30 +206,6 @@ public class Player extends Entity {
 
         if (col >= 0 && col < gp.maxScreenCol && row >= 0 && row < gp.maxScreenRow) {
             return gp.tileM.worldTiles[col][row];
-        }
-
-
-        // --- STEP 2: Cek Item di Lantai (Collision Based) ---
-        // Jika tidak ada meja, baru kita cek item
-
-        // A. DROP ITEM (Jika bawa item)
-        if (inventory != null ) {
-            // Drop tepat di bawah kaki player (atau sedikit di depan jika mau)
-            // Menggunakan pos.x asli, bukan grid
-            int itemX = pos.x + gp.itemSize / 2;
-            int itemY = pos.y + gp.itemSize;
-            gp.itemM.addItem(inventory, itemX, itemY);
-            inventory = null;
-        }
-        // B. PICK UP ITEM (Jika tangan kosong)
-        else {
-            // Gunakan metode tabrakan solidArea
-            Item foundItem = gp.itemM.getItemOnPlayer(this);
-
-            if (foundItem != null) {
-                inventory = foundItem;
-                System.out.println("Mengambil " + inventory.name);
-            }
         }
         return null;
     }
