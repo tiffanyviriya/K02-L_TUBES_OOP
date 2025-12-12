@@ -12,6 +12,8 @@ import main.KeyHandler;
 import main.PlayerState;
 import tile.*;
 
+import static java.lang.Math.sqrt;
+
 public class Player extends Entity {
 
     KeyHandler keyH;
@@ -19,12 +21,16 @@ public class Player extends Entity {
 
     public Player(GamePanel gp, KeyHandler keyH, int posX, int posY) {
         super(gp);
+
         this.gp = gp;
         this.keyH = keyH;
+
         pos.x = posX;
         pos.y = posY;
+
         setDefaultValue();
         getPlayerImage();
+
         solidArea = new Rectangle(0, 16, 32, 32);
         solidAreaDefaultX = solidArea.x;
         solidAreaDefaultY = solidArea.y;
@@ -41,12 +47,15 @@ public class Player extends Entity {
             up0 = ImageIO.read(getClass().getResourceAsStream("/player/north_0.png"));
             up1 = ImageIO.read(getClass().getResourceAsStream("/player/north_1.png"));
             up2 = ImageIO.read(getClass().getResourceAsStream("/player/north_2.png"));
+
             down0 = ImageIO.read(getClass().getResourceAsStream("/player/south_0.png"));
             down1 = ImageIO.read(getClass().getResourceAsStream("/player/south_1.png"));
             down2 = ImageIO.read(getClass().getResourceAsStream("/player/south_2.png"));
+
             left0 = ImageIO.read(getClass().getResourceAsStream("/player/west_0.png"));
             left1 = ImageIO.read(getClass().getResourceAsStream("/player/west_1.png"));
             left2 = ImageIO.read(getClass().getResourceAsStream("/player/west_2.png"));
+
             right0 = ImageIO.read(getClass().getResourceAsStream("/player/east_0.png"));
             right1 = ImageIO.read(getClass().getResourceAsStream("/player/east_1.png"));
             right2 = ImageIO.read(getClass().getResourceAsStream("/player/east_2.png"));
@@ -183,7 +192,20 @@ public class Player extends Entity {
             System.out.println("Interaksi dengan Washing Counter");
             ((WashingCounter) targetTile).interact(this);
         }
+        // 3. Trash Station
+        else if (targetTile instanceof TrashStation) {
+            // Storage harus "sekali tekan", bukan "tahan"
+            // Kita pakai trick sederhana: hanya jalan jika player IDLE (baru tekan)
+            // Dan kita paksa interactPressed false setelah ambil agar tidak ambil beruntun
+            if (playerState == PlayerState.IDLE) {
+                ((TrashStation) targetTile).interact(this);
+                keyH.interactPressed = false;
+            }
+            return;
+        }
     }
+
+
 
     // --- METHOD INTERAKSI KHUSUS LANTAI (Key C) ---
     public void interactWithFloor() {
