@@ -6,5 +6,6 @@ public enum GameState {
     DIFFICULTY_SELECT,
     PLAYING,
     PAUSE,
-    RESULT
+    RESULT,
+    RECIPE_BOOK
 }

@@ -39,6 +39,7 @@ public class GamePanel extends JPanel implements Runnable {
     public ResultScene resultScene = new ResultScene(this);
     public PauseScene pauseScene = new PauseScene(this);
     public TutorialScene tutorialScene = new TutorialScene(this);
+    public RecipeBookScene recipeBookScene;
 
     Thread gameThread;
     public ScheduledExecutorService globalExecutor = Executors.newScheduledThreadPool(4);
@@ -64,6 +65,8 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
 
+        recipeBookScene = new RecipeBookScene(this);
+
         MouseAdapter globalMouseHandler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -72,6 +75,7 @@ public class GamePanel extends JPanel implements Runnable {
                 else if (gameState == GameState.PAUSE) pauseScene.mousePressed(e);
                 else if (gameState == GameState.DIFFICULTY_SELECT) difficultyScene.mousePressed(e);
                 else if (gameState == GameState.RESULT) resultScene.mousePressed(e);
+                else if (gameState == GameState.RECIPE_BOOK) recipeBookScene.mousePressed(e);
             }
 
             @Override
@@ -81,6 +85,7 @@ public class GamePanel extends JPanel implements Runnable {
                 else if (gameState == GameState.PAUSE) pauseScene.mouseMoved(e);
                 else if (gameState == GameState.DIFFICULTY_SELECT) difficultyScene.mouseMoved(e);
                 else if (gameState == GameState.RESULT) resultScene.mouseMoved(e);
+                else if (gameState == GameState.RECIPE_BOOK) recipeBookScene.mousePressed(e);
             }
         };
         this.addMouseListener(globalMouseHandler);
@@ -181,6 +186,9 @@ public class GamePanel extends JPanel implements Runnable {
         } else if (gameState == GameState.PAUSE) {
             pauseScene.update();
         }
+        else if (gameState == GameState.RECIPE_BOOK) {
+            recipeBookScene.update();
+        }
     }
 
     @Override
@@ -201,6 +209,10 @@ public class GamePanel extends JPanel implements Runnable {
             resultScene.draw(g2);
         } else if (gameState == GameState.TUTORIAL) {
             tutorialScene.draw(g2);
+        }
+        else if (gameState == GameState.RECIPE_BOOK) {
+            playScene.draw(g2); // Gambar game di belakangnya
+            recipeBookScene.draw(g2); // Gambar buku di atasnya
         }
         g2.dispose();
     }
