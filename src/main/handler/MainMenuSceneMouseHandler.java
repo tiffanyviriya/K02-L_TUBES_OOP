@@ -31,6 +31,12 @@ public class MainMenuSceneMouseHandler {
             // Trigger repaint atau load scene baru
             scene.gp.repaint();
 
+        } else if (scene.getTutorialButton().contains(p)) { // Logika baru: Tombol Tutorial
+            scene.gp.gameState = GameState.TUTORIAL;
+
+            scene.setTutorialHover(false);
+            scene.gp.repaint();
+
         } else if (scene.getExitButton().contains(p)) {
             System.exit(0);
         }
@@ -47,6 +53,10 @@ public class MainMenuSceneMouseHandler {
         // Kita cek state sebelumnya (lewat getter field scene atau logic sendiri)
         // Disini kita overwrite saja, tapi idealnya cek dulu biar hemat resource
         scene.setPlayHover(isPlayHovering);
+
+        // 2. Cek Hover Exit Button
+        boolean isTutorialHovering = scene.getTutorialButton().contains(p);
+        scene.setTutorialHover(isTutorialHovering);
 
         // 2. Cek Hover Exit Button
         boolean isExitHovering = scene.getExitButton().contains(p);

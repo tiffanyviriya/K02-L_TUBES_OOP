@@ -18,11 +18,13 @@ public class MainMenuScene implements Scene {
 
     // UI Elements
     private Rectangle playButton;
+    private Rectangle tutorialButton; // Tombol baru
     private Rectangle exitButton;
 
     // State Visual
-    private boolean playHover = false;
-    private boolean exitHover = false;
+    public boolean playHover = false;
+    public boolean tutorialHover = false; // State baru
+    public boolean exitHover = false;
 
     // Resources
     private BufferedImage backgroundImage;
@@ -33,17 +35,22 @@ public class MainMenuScene implements Scene {
         this.gp = gp;
         this.mouseHandler = new MainMenuSceneMouseHandler(this);
 
-        // 1. Setup Posisi Tombol
+        // 1. Setup Posisi Tombol (3 Tombol, disentralisasi)
         int buttonWidth = 200;
         int buttonHeight = 60;
         int spacing = 40;
 
-        int buttonX = (gp.screenWidth / 2) - (buttonWidth / 2);
-        int playButtonY = (gp.screenHeight / 2) - buttonHeight;
-        int exitButtonY = playButtonY + buttonHeight + spacing;
+        // Total tinggi 3 tombol + 2 spasi = (3*60) + (2*40) = 260
+        int totalHeight = (buttonHeight * 3) + (spacing * 2);
 
-        playButton = new Rectangle(buttonX, playButtonY, buttonWidth, buttonHeight);
-        exitButton = new Rectangle(buttonX, exitButtonY, buttonWidth, buttonHeight);
+        int buttonX = (gp.screenWidth / 2) - (buttonWidth / 2);
+
+        // Posisi Y awal (Centering 260px di layar 576px)
+        int startY = (gp.screenHeight / 2) - (totalHeight / 2);
+
+        playButton = new Rectangle(buttonX, startY, buttonWidth, buttonHeight);
+        tutorialButton = new Rectangle(buttonX, startY + buttonHeight + spacing, buttonWidth, buttonHeight); // Posisi Tombol Tutorial
+        exitButton = new Rectangle(buttonX, startY + (buttonHeight + spacing) * 2, buttonWidth, buttonHeight); // Posisi Tombol Exit
 
         // 2. Load Resources
         loadResources();
@@ -86,6 +93,7 @@ public class MainMenuScene implements Scene {
 
         // 2. Gambar Tombol
         drawButton(g2, playButton, "PLAY", playHover);
+        drawButton(g2, tutorialButton, "TUTORIAL", tutorialHover); // Draw tombol tutorial
         drawButton(g2, exitButton, "EXIT", exitHover);
     }
 
@@ -135,7 +143,9 @@ public class MainMenuScene implements Scene {
     }
 
     public Rectangle getPlayButton() { return playButton; }
+    public Rectangle getTutorialButton() { return tutorialButton; } // Getter baru
     public Rectangle getExitButton() { return exitButton; }
     public void setPlayHover(boolean hover) { this.playHover = hover; }
+    public void setTutorialHover(boolean hover) { this.tutorialHover = hover; } // Setter baru
     public void setExitHover(boolean hover) { this.exitHover = hover; }
 }
