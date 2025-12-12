@@ -1,12 +1,12 @@
 package tile;
 
-import environment.Entity;
-import environment.Ingredient;
-import environment.IngredientState;
-import environment.Item;
-import main.GamePanel;
-import main.PlayerState;
-import environment.Player;
+import environment.entity.Entity;
+import environment.food_related.Ingredient;
+import environment.food_related.IngredientState;
+import environment.item.Item;
+import main.util.GamePanel;
+import environment.entity.PlayerState;
+import environment.entity.Player;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
