@@ -39,7 +39,7 @@ public class KitchenUtensil extends Item {
         try {
             // Load Gambar Wajan
             imgPanEmpty = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan.png"));
-            imgPanShrimp = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp.png"));
+            imgPanShrimp = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp_Cooked.png"));
 
             // Load Gambar Panci
             imgPotEmpty = ImageIO.read(getClass().getResourceAsStream("/utensils/Boiling_Pot.png"));
