@@ -1,12 +1,11 @@
 package tile;
 
-import environment.Entity;
-import environment.KitchenUtensil;
-import environment.Plate;
-import main.GamePanel;
+import environment.entity.Entity;
+import environment.item.KitchenUtensil;
+import environment.item.Plate;
+import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
-import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -24,7 +23,7 @@ public class TrashStation extends Tile {
             // Sesuaikan path ini dengan lokasi gambar Trash Station Anda
             // Berdasarkan file yang diupload: /Sprites_Overcooked/Sprites_Stations/Trash_Station.png
             // Atau jika Anda sudah memindahkannya ke folder /stations/:
-            this.image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/Sprites_Overcooked/Sprites_Stations/Trash_Station.png")));
+            this.image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/stations/Trash_Station.png")));
         } catch (Exception e) {
             System.err.println("Gagal memuat gambar Trash Station.");
         }

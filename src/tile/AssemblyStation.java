@@ -1,7 +1,11 @@
 package tile;
 
-import environment.*;
-import main.GamePanel;
+import environment.entity.Entity;
+import environment.food_related.Ingredient;
+import environment.item.Item;
+import environment.item.KitchenUtensil;
+import environment.item.Plate;
+import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
