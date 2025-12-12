@@ -43,7 +43,7 @@ public class WashingStation extends Tile implements Runnable {
     private void loadImage() {
         try {
             // Menggunakan path sesuai resource yang ada
-            var is = getClass().getResourceAsStream("/tiles/OOPTile.png");
+            var is = getClass().getResourceAsStream("/stations/washingstation.png");
             if (is == null) is = getClass().getResourceAsStream("/tiles/floor_tile.png"); // Fallback
             if (is != null) image = ImageIO.read(is);
         } catch (IOException e) { e.printStackTrace(); }

@@ -21,7 +21,7 @@ public class WashingCounter extends Tile {
 
     private void loadImage() {
         try {
-            var is = getClass().getResourceAsStream("/tiles/OOPTile.png"); //ganti
+            var is = getClass().getResourceAsStream("/stations/washingcounter.png"); //ganti
             if (is != null) image = ImageIO.read(is);
         } catch (IOException e) { e.printStackTrace(); }
     }
