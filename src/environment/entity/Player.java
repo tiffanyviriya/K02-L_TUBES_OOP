@@ -36,8 +36,7 @@ public class Player extends Entity {
         setDefaultValue();
         getPlayerImage();
 
-        // Hitbox lebih kecil dari 1 tile agar tidak mudah nyangkut
-        solidArea = new Rectangle(8, 16, 32, 32);
+        solidArea = new Rectangle(0, 16, 32, 32);
         solidAreaDefaultX = solidArea.x;
         solidAreaDefaultY = solidArea.y;
     }
@@ -113,7 +112,6 @@ public class Player extends Entity {
                 }
             }
 
-            // Animasi Sprite
             spriteCounter++;
             if (spriteCounter > 12) {
                 if (spriteNum == 1) spriteNum = 2;
@@ -286,9 +284,7 @@ public class Player extends Entity {
             ((CuttingStation) targetTile).interact(this);
         }
         else if (targetTile instanceof IngredientStorage) {
-            if (playerState == PlayerState.IDLE) {
-                ((IngredientStorage) targetTile).interact(this);
-            }
+            ((IngredientStorage) targetTile).interact(this);
         }
         else if (targetTile instanceof ServingCounter) {
             ((ServingCounter) targetTile).interact(this);
