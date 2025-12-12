@@ -16,7 +16,7 @@ public class MainMenuMouseHandler {
 
         if (scene.getPlayButton().contains(p)) {
             // Ubah state game menjadi PLAYING
-            scene.gp.gameState = GameState.PLAYING;
+            scene.gp.changeGameState(GameState.PLAYING);
         } else if (scene.getExitButton().contains(p)) {
             // Keluar dari aplikasi
             System.exit(0);

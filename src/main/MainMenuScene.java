@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class MainMenuScene implements Scene {
 
@@ -18,9 +19,12 @@ public class MainMenuScene implements Scene {
     private boolean playHover = false;
     private boolean exitHover = false;
 
-    // Gambar-gambar UI
+    // Aset Gambar
     private BufferedImage backgroundImage;
     private BufferedImage buttonImage;
+
+    // Aset Font Custom
+    private Font pixelFont;
 
     private MainMenuMouseHandler mouseHandler;
 
@@ -28,10 +32,10 @@ public class MainMenuScene implements Scene {
         this.gp = gp;
 
         // -----------------------------------------------------------
-        // Posisi tombol Dinamis
+        // 1. Setup Posisi Tombol
         // -----------------------------------------------------------
-        int buttonWidth = 165;
-        int buttonHeight = 64;
+        int buttonWidth = 200;
+        int buttonHeight = 60;
 
         int buttonX = (gp.screenWidth / 2) - (buttonWidth / 2);
         int playButtonY = (gp.screenHeight / 2) - buttonHeight;
@@ -40,14 +44,31 @@ public class MainMenuScene implements Scene {
         playButton = new Rectangle(buttonX, playButtonY, buttonWidth, buttonHeight);
         exitButton = new Rectangle(buttonX, exitButtonY, buttonWidth, buttonHeight);
 
+        // -----------------------------------------------------------
+        // 2. Load Resources (Gambar & Font)
+        // -----------------------------------------------------------
         try {
-            // Memuat gambar background dan tombol
-            // Pastikan file "nimonscooked.png" dan "buttonUI.png" ada di folder /res/ui/
+            // Load Gambar
+            // Pastikan path sesuai dengan struktur folder project Anda
             backgroundImage = ImageIO.read(getClass().getResourceAsStream("/ui/nimonscooked.png"));
             buttonImage = ImageIO.read(getClass().getResourceAsStream("/ui/buttonUI.png"));
-        } catch (IOException e) {
+
+            // Load Custom Font
+            // Ganti "/font/pixel.ttf" dengan nama file font yang Anda miliki
+            InputStream is = getClass().getResourceAsStream("/font/ByteBounce.ttf");
+            if (is != null) {
+                pixelFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(36f);
+            } else {
+                // Fallback jika file tidak ditemukan
+                System.out.println("Warning: Font file not found, using default.");
+                pixelFont = new Font("Monospaced", Font.BOLD, 32);
+            }
+
+        } catch (IOException | FontFormatException e) {
             e.printStackTrace();
-            System.out.println("Warning: UI images failed to load.");
+            System.out.println("Warning: Failed to load resources.");
+            // Fallback font aman jika terjadi error
+            pixelFont = new Font("Monospaced", Font.BOLD, 32);
         }
 
         mouseHandler = new MainMenuMouseHandler(this);
@@ -60,7 +81,7 @@ public class MainMenuScene implements Scene {
 
     @Override
     public void draw(Graphics2D g2) {
-        // 1. Gambar Background Utama
+        // A. Gambar Background
         if (backgroundImage != null) {
             g2.drawImage(backgroundImage, 0, 0, gp.screenWidth, gp.screenHeight, null);
         } else {
@@ -68,7 +89,7 @@ public class MainMenuScene implements Scene {
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
         }
 
-        // 2. Gambar Tombol
+        // B. Gambar Tombol
         drawButton(g2, playButton, "PLAY", playHover);
         drawButton(g2, exitButton, "EXIT", exitHover);
     }
@@ -87,7 +108,7 @@ public class MainMenuScene implements Scene {
 
     private void drawButton(Graphics2D g2, Rectangle rect, String text, boolean hover) {
 
-        // A. Gambar Background Tombol
+        // 1. Gambar Background Tombol
         if (buttonImage != null) {
             g2.drawImage(buttonImage, rect.x, rect.y, rect.width, rect.height, null);
         } else {
@@ -95,39 +116,43 @@ public class MainMenuScene implements Scene {
             g2.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
 
-        // B. EFEK GELAP SAAT HOVER (Overlay)
+        // 2. Efek Gelap saat Hover (Overlay)
         if (hover) {
-            // Membuat warna hitam dengan transparansi (Alpha)
-            // Format: Red, Green, Blue, Alpha (0-255).
-            // 0 = transparan penuh, 255 = solid.
-            // 80 memberikan efek gelap sekitar 30%.
-            g2.setColor(new Color(0, 0, 0, 80));
+            g2.setColor(new Color(0, 0, 0, 80)); // Hitam transparan
             g2.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
 
-        // C. Setup Font Pixel Style
-        g2.setFont(new Font("Monospaced", Font.BOLD, 32));
+        // 3. Set Custom Font
+        // Kita menggunakan variabel pixelFont yang sudah di-load di konstruktor
+        g2.setFont(pixelFont);
+
+        // 4. Hitung Posisi Teks (Center Alignment)
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(text);
-        int textHeight = fm.getAscent();
+        int textHeight = fm.getAscent(); // Menggunakan Ascent agar lebih akurat untuk font pixel
 
-        // Hitung posisi tengah
-        int tx = rect.x + (rect.width - textWidth) / 2 - 4;
-        int ty = rect.y + (rect.height + textHeight) / 2 -8;
+        int tx = rect.x + (rect.width - textWidth) / 2 - 2;
+        int ty = rect.y + (rect.height + textHeight) / 2 + 2;
 
-        // D. Gambar Teks
+        // Sedikit penyesuaian vertikal (fine-tuning) tergantung fontnya
+        // Kadang font pixel titik tengahnya agak beda, sesuaikan angka -4 ini jika perlu
+        ty -= 4;
+
+        // 5. Gambar Teks dengan Shadow
         if (hover) {
-            // Saat hover: Teks menjadi kuning cerah, shadow tetap hitam
+            // Shadow
             g2.setColor(Color.BLACK);
-            g2.drawString(text, tx + 2, ty + 2); // Shadow
+            g2.drawString(text, tx + 2, ty + 2); // Shadow lebih tebal (3px) agar retro banget
+            // Main Text
             g2.setColor(Color.YELLOW);
-            g2.drawString(text, tx, ty); // Teks Utama
+            g2.drawString(text, tx, ty);
         } else {
-            // Saat normal: Teks putih, shadow hitam
+            // Shadow
             g2.setColor(Color.BLACK);
-            g2.drawString(text, tx + 2, ty + 2); // Shadow
+            g2.drawString(text, tx + 2, ty + 2);
+            // Main Text
             g2.setColor(Color.WHITE);
-            g2.drawString(text, tx, ty); // Teks Utama
+            g2.drawString(text, tx, ty);
         }
     }
 

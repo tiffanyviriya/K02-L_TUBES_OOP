@@ -16,10 +16,10 @@ public class PauseSceneMouseHandler {
 
         if (scene.getResumeButton().contains(p)) {
             // Kembali ke game
-            scene.gp.gameState = GameState.PLAYING;
+            scene.gp.changeGameState(GameState.PLAYING);
         } else if (scene.getMenuButton().contains(p)) {
             // Kembali ke Main Menu
-            scene.gp.gameState = GameState.MAINMENU;
+            scene.gp.changeGameState(GameState.MAINMENU);
         }
     }
 

@@ -16,7 +16,7 @@ public class PlaySceneMouseHandler {
 
         // Cek jika tombol Pause diklik
         if (scene.getPauseButton().contains(p)) {
-            scene.gp.gameState = GameState.PAUSE;
+            scene.gp.changeGameState(GameState.PAUSE);
         }
     }
 
