@@ -12,49 +12,57 @@ public class Sound {
     FloatControl fc;
     float volume = 1;
 
-    public Sound()
-    {
+    public Sound() {
         try {
+            // Index 0: Background Music
             soundURL[0] = getClass().getResource("/sound/nimonsbeat.wav");
+
             // Index 1: Suara Boiling Pot
             soundURL[1] = getClass().getResource("/sound/Boiling_Pot.wav");
+
             // Index 2: Suara Cooking Pan
             soundURL[2] = getClass().getResource("/sound/Cooking Pan.wav");
+
+            // Index 3: Serving
             soundURL[3] = getClass().getResource("/sound/Serving(_).wav");
+
+            // Index 6: Error Action (Bahan salah/Ga bisa ditaruh)
             soundURL[6] = getClass().getResource("/sound/Error_Action.wav");
+
+            // Index 9: Cutting (Looping saat memotong)
             soundURL[9] = getClass().getResource("/sound/Cutting.wav");
+
+            // Tambahan (Opsional, agar index tidak null jika dipanggil kode lama)
+            soundURL[4] = getClass().getResource("/sound/Poin.wav"); // Misal untuk skor
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void setFile(int i)
-    {
+    public void setFile(int i) {
         try {
+            if (soundURL[i] == null) return; // Safety check
             AudioInputStream ais = AudioSystem.getAudioInputStream(soundURL[i]);
             clip = AudioSystem.getClip();
             clip.open(ais);
-            fc = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN); //pass value for clip // -80f to 6f // 6 is max. -80f = 0
+            fc = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             e.printStackTrace();
         }
-        fc.setValue(volume); //set volume
+        if (fc != null) fc.setValue(volume);
     }
 
-    public void play()
-    {
-        clip.start();
+    public void play() {
+        if (clip != null) clip.start();
     }
 
-    public void loop()
-    {
-        clip.loop(Clip.LOOP_CONTINUOUSLY);
+    public void loop() {
+        if (clip != null) clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
 
-    public void stop()
-    {
-        clip.stop();
+    public void stop() {
+        if (clip != null) clip.stop();
     }
 }

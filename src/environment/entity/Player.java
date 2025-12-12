@@ -70,39 +70,41 @@ public class Player extends Entity {
     }
 
     public void update() {
-        if (dashCooldown > 0) dashCooldown--;
 
-        // 1. Cek Status BUSY (Sedang memotong/mencuci)
-        if (playerState == PlayerState.BUSY) {
-            if (!keyH.actionPressed) {
-                playerState = PlayerState.IDLE; // Batal jika tombol dilepas
-            } else {
-                interactWithStation(); // Lanjut kerja
-            }
-            return; // Kunci pergerakan
+        // 1. PRIORITAS UTAMA: SWITCH CHEF
+        // Ini ditaruh paling atas supaya bisa ganti chef KAPANPUN,
+        // bahkan saat chef sedang BUSY memotong.
+        if (keyH.switchPressed) {
+            gp.playerM.switchPlayer();
+            keyH.switchPressed = false; // Reset input
+            return; // Keluar agar tidak memproses movement di frame ini
         }
 
-        // 2. Input Pergerakan
-        boolean isMoving = false;
+        // 2. CEK TOMBOL INTERAKSI (V - Action)
+        // Kita cek ini SEBELUM cek BUSY, supaya pemain bisa menekan V
+        // untuk membatalkan/stop proses memotong.
+        if (keyH.actionPressed) {
+            interactWithStation();
+            keyH.actionPressed = false; // [PENTING] Reset agar tidak terbaca double
+        }
+
+        // 3. CEK STATUS BUSY
+        // Jika sedang sibuk (memotong/mencuci), stop di sini.
+        // Player tidak boleh bergerak, tapi progress bar di station tetap jalan (diurus Station).
+        if (playerState == PlayerState.BUSY) {
+            return;
+        }
+
+        // 4. LOGIKA PERGERAKAN (Hanya jalan jika IDLE)
         if (keyH.upPressed || keyH.downPressed || keyH.leftPressed || keyH.rightPressed) {
             if (keyH.upPressed) direction = "up";
             else if (keyH.downPressed) direction = "down";
             else if (keyH.leftPressed) direction = "left";
             else if (keyH.rightPressed) direction = "right";
-            isMoving = true;
-        }
 
-        // 3. Cek Kolisi & Update Posisi
-        if (isMoving) {
             collisionOn = false;
-
-            // Cek Tile (Dinding/Station)
             gp.cChecker.checkTile(this);
 
-            // Cek Player Lain (Supaya tidak tembus badan chef lain)
-            gp.cChecker.checkPlayer(this);
-
-            // Jika tidak ada tabrakan, baru gerak
             if (!collisionOn) {
                 switch (direction) {
                     case "up" -> pos.y -= speed;
@@ -113,43 +115,19 @@ public class Player extends Entity {
             }
 
             spriteCounter++;
-            if (spriteCounter > 12) {
-                if (spriteNum == 1) spriteNum = 2;
-                else if (spriteNum == 2) spriteNum = 3;
-                else if (spriteNum == 3) spriteNum = 1;
+            if(spriteCounter > 12) {
+                if(spriteNum == 1) spriteNum = 2;
+                else if(spriteNum == 2) spriteNum = 3;
+                else if(spriteNum == 3) spriteNum = 1;
                 spriteCounter = 0;
             }
-        } else {
-            // Reset sprite ke posisi diam jika tidak bergerak (opsional)
-            spriteNum = 1;
         }
 
-        // 4. Input Aksi
-        if (keyH.actionPressed) {
-            interactWithStation();
-            if (playerState != PlayerState.BUSY) {
-                keyH.actionPressed = false;
-            }
-        }
-
+        // 5. TOMBOL PICKUP/DROP (C - Interact)
+        // Hanya bisa dilakukan jika IDLE (tangan bebas/tidak sedang masak)
         if (keyH.interactPressed) {
             interactWithFloor();
             keyH.interactPressed = false;
-        }
-
-        if (keyH.switchPressed) {
-            gp.playerM.switchPlayer();
-            keyH.switchPressed = false;
-        }
-
-        if (keyH.dashPressed) {
-            performDash();
-            keyH.dashPressed = false;
-        }
-
-        if (keyH.throwPressed) {
-            performThrow();
-            keyH.throwPressed = false;
         }
     }
 

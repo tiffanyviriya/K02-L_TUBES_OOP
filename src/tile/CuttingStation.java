@@ -6,24 +6,18 @@ import environment.entity.PlayerState;
 import environment.food_related.Ingredient;
 import environment.food_related.IngredientState;
 import environment.item.Item;
-import environment.item.KitchenUtensil;
-import environment.item.Plate;
 import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class CuttingStation extends Tile {
 
     public Item itemOnTop = null;
-
-    // Siapa yang sedang menggunakan station ini?
     private Entity activePlayer = null;
-
     private int currentProgress = 0;
-    private final int TIME_TO_CUT = 180; // 3 detik x 60 FPS
+    private final int TIME_TO_CUT = 180; // 3 detik
 
     public CuttingStation(GamePanel gp) {
         super(gp);
@@ -34,126 +28,73 @@ public class CuttingStation extends Tile {
     private void loadStationImage() {
         try {
             image = ImageIO.read(getClass().getResourceAsStream("/stations/cutting_station.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     @Override
     public void interact(Entity player) {
-        // KASUS 1: Meja Ada Item
+        // KASUS 1: Menaruh Item
+        if (itemOnTop == null && player.inventory != null) {
+            // Validasi bahan seperti sebelumnya...
+            if (player.inventory instanceof Ingredient) {
+                Ingredient ing = (Ingredient) player.inventory;
+                boolean isCuttable = ing.name.equalsIgnoreCase("shrimp") ||
+                        ing.name.equalsIgnoreCase("fish") ||
+                        ing.name.equalsIgnoreCase("cucumber");
+                if (!isCuttable) {
+                    gp.soundM.playSE(6); // Error Sound
+                    return;
+                }
+            } else {
+                gp.soundM.playSE(6); // Error jika bukan ingredient
+                return;
+            }
+
+            itemOnTop = player.inventory;
+            player.inventory = null;
+            return;
+        }
+
+        // KASUS 2: Interaksi (Start/Stop Cutting atau Ambil)
         if (itemOnTop != null) {
-
-            // Cek apakah item sedang dipotong?
-            if (activePlayer != null && activePlayer != player) {
-                System.out.println("Station sedang digunakan chef lain!");
-                return;
-            }
-
-            // --- LOGIKA BARU: Tuang Panci ke Piring di Meja ---
-            if (itemOnTop instanceof Plate && player.inventory instanceof KitchenUtensil) {
-                // Stop cutting jika ada progress gantung (safety)
-                if (activePlayer == player) stopCutting();
-
-                Plate plate = (Plate) itemOnTop;
-                KitchenUtensil utensil = (KitchenUtensil) player.inventory;
-
-                ArrayList<Ingredient> food = utensil.serveToPlate();
-
-                if (food != null) {
-                    for (Ingredient i : food) {
-                        plate.addItem(i);
-                    }
-                    System.out.println("Plating: Makanan dari " + utensil.name + " dituang ke Piring di Cutting Station.");
-                } else {
-                    System.out.println("Gagal: Makanan belum matang atau gosong.");
-                }
-                return;
-            }
-            // --------------------------------------------------
-
-            boolean isRawIngredient = false;
+            boolean isRaw = false;
             if (itemOnTop instanceof Ingredient) {
-                if (((Ingredient) itemOnTop).state == IngredientState.RAW) {
-                    isRawIngredient = true;
-                }
+                if (((Ingredient) itemOnTop).state == IngredientState.RAW) isRaw = true;
             }
 
-            // A. LOGIKA CUTTING
-            if (isRawIngredient && player.inventory == null) {
+            // A. START / STOP CUTTING
+            if (isRaw && player.inventory == null) {
+                // Cek apakah station sedang dipakai orang lain?
+                if (activePlayer != null && activePlayer != player) {
+                    // Jika dipakai orang lain, jangan ganggu
+                    return;
+                }
+
+                // TOGGLE LOGIC
                 if (activePlayer == null) {
-                    startCutting(player);
+                    startCutting(player); // START
                 } else {
-                    stopCutting();
-                }
-                return;
-            }
-
-            // B. LOGIKA ASSEMBLY LAINNYA
-
-            // 1. Player bawa Piring -> Plating (Ambil bahan dari meja)
-            if (player.inventory instanceof Plate) {
-                if (activePlayer == player) stopCutting();
-
-                Plate plate = (Plate) player.inventory;
-                if (itemOnTop instanceof Ingredient) {
-                    plate.addItem((Ingredient) itemOnTop);
-                    itemOnTop = null;
+                    stopCutting(); // STOP
                 }
             }
 
-            // 2. Player bawa Kitchen Utensil -> Masukkan bahan dari meja ke panci
-            else if (player.inventory instanceof KitchenUtensil) {
-                if (activePlayer == player) stopCutting();
-
-                KitchenUtensil utensil = (KitchenUtensil) player.inventory;
-                if (itemOnTop instanceof Ingredient) {
-                    Ingredient ing = (Ingredient) itemOnTop;
-                    if (ing.canBeCooked() && !utensil.isCooked && !utensil.isBurned) {
-                        utensil.addIngredient(ing);
-                        itemOnTop = null;
-                    }
-                }
-            }
-
-            // 3. Player bawa Ingredient -> Gabung ke Piring di Meja
-            else if (player.inventory instanceof Ingredient && itemOnTop instanceof Plate) {
-                ((Plate) itemOnTop).addItem((Ingredient) player.inventory);
-                player.inventory = null;
-            }
-
-            // 4. Player Tangan Kosong -> Ambil Item
+            // B. MENGAMBIL ITEM (Hanya jika progress berhenti/selesai)
             else if (player.inventory == null) {
-                stopCutting();
+                // Jangan ambil paksa jika teman sedang memotong
+                if (activePlayer != null && activePlayer != player) return;
+
+                stopCutting(); // Pastikan reset state
                 player.inventory = itemOnTop;
                 itemOnTop = null;
                 currentProgress = 0;
             }
         }
-
-        // KASUS 2: Meja Kosong -> Taruh Item
-        else {
-            if (player.inventory != null) {
-                itemOnTop = player.inventory;
-                player.inventory = null;
-            }
-        }
     }
 
-    // --- LOGIKA UPDATE (Jalan Otomatis) ---
     public void update() {
-
-        // [FIX UTAMA]: Jika player yang sedang memotong BUKAN player yang aktif dimainkan, HENTIKAN CUTTING.
-        // Ini mencegah player lama "nyangkut" dalam status BUSY saat di-switch.
-        if (activePlayer != null && activePlayer != gp.playerM.getActivePlayer()) {
-            stopCutting();
-            return;
-        }
-
-        // Jika ada player yang aktif memotong, jalankan progress
+        // Jika ada player yang aktif, jalankan progress
         if (activePlayer != null && itemOnTop != null) {
-
-            // Pastikan player terkunci (BUSY)
+            // Kunci status player jadi BUSY terus menerus
             if (activePlayer instanceof Player) {
                 ((Player) activePlayer).playerState = PlayerState.BUSY;
             }
@@ -164,29 +105,29 @@ public class CuttingStation extends Tile {
                 finishCutting();
             }
         }
-        // Safety: Jika item diambil paksa atau hilang
+        // Safety check: Jika barang diambil tiba-tiba
         else if (activePlayer != null && itemOnTop == null) {
             stopCutting();
         }
     }
 
-    // --- HELPER METHODS ---
     private void startCutting(Entity player) {
         activePlayer = player;
-        // currentProgress = 0; // Jangan reset jika ingin melanjutkan sisa potongan
-        if (player instanceof Player) {
-            ((Player) player).playerState = PlayerState.BUSY;
-        }
-        gp.soundM.playSE(9); // Opsional: Play sound cutting start
-        System.out.println("Mulai memotong...");
+        if (player instanceof Player) ((Player) player).playerState = PlayerState.BUSY;
+
+        gp.soundM.playSELoop(9); // Loop suara cutting
+        System.out.println("Start Cutting...");
     }
 
     private void stopCutting() {
+        // Kembalikan player ke IDLE
         if (activePlayer instanceof Player) {
             ((Player) activePlayer).playerState = PlayerState.IDLE;
         }
         activePlayer = null;
-        System.out.println("Berhenti memotong/Pause.");
+
+        gp.soundM.stopSELoop(); // Stop suara
+        System.out.println("Stop Cutting.");
     }
 
     private void finishCutting() {
@@ -194,44 +135,21 @@ public class CuttingStation extends Tile {
             ((Ingredient) itemOnTop).chop();
         }
         currentProgress = 0;
-        stopCutting();
-        gp.soundM.playSE(9); // Opsional: Sound selesai
-        System.out.println("Selesai memotong!");
+        stopCutting(); // Ini akan stop suara dan bebaskan player
     }
 
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
-
         if (itemOnTop != null) {
-
-            if (itemOnTop instanceof KitchenUtensil) {
-                int offset = 8;
-                itemOnTop.draw(g2, x + offset, y + offset);
-            } else {
-                int centerOffset = (gp.tileSize - gp.itemSize) / 2;
-                itemOnTop.draw(g2, x + centerOffset, y + centerOffset);
-            }
-
+            g2.drawImage(itemOnTop.image, x + 12, y + 12, gp.itemSize, gp.itemSize, null);
             if (currentProgress > 0) {
                 int barWidth = 32;
-                int barHeight = 6;
                 int screenX = x + 8;
                 int screenY = y - 10;
-
-                g2.setColor(Color.RED);
-                g2.fillRect(screenX, screenY, barWidth, barHeight);
-
+                g2.setColor(Color.RED); g2.fillRect(screenX, screenY, barWidth, 6);
                 int greenBar = (int) (((double)currentProgress / TIME_TO_CUT) * barWidth);
-                g2.setColor(Color.GREEN);
-                g2.fillRect(screenX, screenY, greenBar, barHeight);
-
-                g2.setColor(Color.BLACK);
-                g2.drawRect(screenX, screenY, barWidth, barHeight);
-
-                if (activePlayer != null) {
-                    g2.setColor(Color.YELLOW);
-                    g2.drawRect(screenX - 2, screenY - 2, barWidth + 4, barHeight + 4);
-                }
+                g2.setColor(Color.GREEN); g2.fillRect(screenX, screenY, greenBar, 6);
+                g2.setColor(Color.BLACK); g2.drawRect(screenX, screenY, barWidth, 6);
             }
         }
     }
