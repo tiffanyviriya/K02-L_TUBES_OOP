@@ -1,9 +1,8 @@
 package main.scene;
 
-import main.util.FontManager;
+import main.manager.FontManager;
 import main.util.GamePanel;
 import main.handler.TutorialSceneMouseHandler;
-import main.util.GameState;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

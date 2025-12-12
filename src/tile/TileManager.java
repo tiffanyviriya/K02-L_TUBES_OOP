@@ -215,6 +215,7 @@ public class TileManager {
                 else if (currentTile instanceof CuttingStation) {
                     ((CuttingStation) currentTile).update();
                 }
+
             }
         }
     }
@@ -249,6 +250,9 @@ public class TileManager {
             }
             else if (currentTile instanceof WashingCounter) {
                 ((WashingCounter)currentTile).draw(g2, x, y);
+            }
+            else if (currentTile instanceof IngredientStorage) {
+                ((IngredientStorage)currentTile).draw(g2, x, y);
             }
             else if (currentTile != null && currentTile.image != null) {
                 g2.drawImage(currentTile.image, x, y, gp.tileSize, gp.tileSize, null);

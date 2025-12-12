@@ -3,15 +3,16 @@ package tile;
 import environment.entity.Entity;
 import environment.item.Item;
 import main.util.GamePanel;
+import main.util.ItemContainer; // Import baru
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
-import java.util.Stack;
 
 public class WashingCounter extends Tile {
 
-    private Stack<Item> cleanStack = new Stack<>();
+    // [CUSTOM GENERICS] Menggunakan ItemContainer<Item> untuk tumpukan bersih
+    private ItemContainer<Item> cleanStack = new ItemContainer<>();
 
     public WashingCounter(GamePanel gp) {
         super(gp);
@@ -21,21 +22,22 @@ public class WashingCounter extends Tile {
 
     private void loadImage() {
         try {
-            var is = getClass().getResourceAsStream("/stations/washingcounter.png"); //ganti
+            var is = getClass().getResourceAsStream("/stations/washingcounter.png");
             if (is != null) image = ImageIO.read(is);
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // Method ini akan dipanggil oleh WashingStation (Tetangga)
     public synchronized void addCleanPlate(Item item) {
-        cleanStack.push(item);
+        // [CUSTOM GENERICS] Add item
+        cleanStack.addItem(item);
     }
 
     @Override
     public void interact(Entity player) {
         // Player hanya bisa MENGAMBIL dari sini
         if (player.inventory == null && !cleanStack.isEmpty()) {
-            player.inventory = cleanStack.pop();
+            // [CUSTOM GENERICS] Take item
+            player.inventory = cleanStack.takeItem();
             System.out.println("Player mengambil piring bersih.");
         }
     }
@@ -47,9 +49,13 @@ public class WashingCounter extends Tile {
             g2.fillRect(x, y, gp.tileSize, gp.tileSize);
         }
 
-        // Visualisasi Tumpukan Piring Bersih
         if (!cleanStack.isEmpty()) {
-            g2.drawImage(cleanStack.peek().image, x + 12, y + 10, gp.itemSize, gp.itemSize, null);
+            // [CUSTOM GENERICS] Peek item
+            Item topItem = cleanStack.peekItem();
+
+            if (topItem != null && topItem.image != null) {
+                g2.drawImage(topItem.image, x + 12, y + 10, gp.itemSize, gp.itemSize, null);
+            }
 
             if (cleanStack.size() > 1) {
                 g2.setColor(Color.BLUE);

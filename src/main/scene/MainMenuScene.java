@@ -1,6 +1,6 @@
 package main.scene;
 
-import main.util.FontManager;
+import main.manager.FontManager;
 import main.util.GamePanel;
 import main.handler.MainMenuSceneMouseHandler;
 

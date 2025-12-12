@@ -15,43 +15,55 @@ public class AssemblyStation extends Tile {
 
     public Item itemOnTop = null;
 
-    // [UBAH]: Tambahkan parameter 'type' di constructor
     public AssemblyStation(GamePanel gp, String type) {
         super(gp);
         this.collision = true;
-        loadStationImage(type); // Panggil fungsi load dengan tipe
+        loadStationImage(type);
     }
 
-    // [UBAH]: Terima parameter type untuk menentukan gambar
     private void loadStationImage(String type) {
         String path = "";
-
         try {
             if (type.equals("vertical")) {
-                // Pastikan nama file sesuai dengan yang ada di folder res Anda
                 path = "/stations/vertikal.png";
             } else {
-                // Default ke horizontal
                 path = "/stations/horizontal.png";
             }
-
             image = ImageIO.read(getClass().getResourceAsStream(path));
-
         } catch (Exception e) {
-            System.out.println("Gagal load gambar: " + path);
             e.printStackTrace();
         }
     }
 
     @Override
     public void interact(Entity player) {
-        // ... (Isi logika interact TETAP SAMA, tidak perlu diubah) ...
-        // Copy paste logika interact yang sudah ada sebelumnya
-
         // KASUS 1: Ada Item di atas Meja
         if (itemOnTop != null) {
+
+            // --- LOGIKA BARU: Tuang Panci ke Piring di Meja ---
+            if (itemOnTop instanceof Plate && player.inventory instanceof KitchenUtensil) {
+                Plate plate = (Plate) itemOnTop;
+                KitchenUtensil utensil = (KitchenUtensil) player.inventory;
+
+                // Coba sajikan isi panci ke piring
+                ArrayList<Ingredient> food = utensil.serveToPlate();
+
+                if (food != null) {
+                    for (Ingredient i : food) {
+                        plate.addItem(i);
+                    }
+                    System.out.println("Plating: Makanan dari " + utensil.name + " dituang ke Piring di meja.");
+                } else {
+                    System.out.println("Gagal: Makanan belum matang atau gosong.");
+                }
+                return; // Selesai interaksi
+            }
+            // --------------------------------------------------
+
+            // Interaksi Panci di Meja (Masukkan bahan)
             if (itemOnTop instanceof KitchenUtensil) {
                 KitchenUtensil utensil = (KitchenUtensil) itemOnTop;
+
                 if (player.inventory instanceof Ingredient) {
                     Ingredient ingredient = (Ingredient) player.inventory;
                     if (ingredient.canBeCooked() && !utensil.isCooked && !utensil.isBurned) {
@@ -71,16 +83,18 @@ public class AssemblyStation extends Tile {
                     itemOnTop = null;
                 }
             }
+            // Interaksi Piring di Meja (Tambahkan bahan dari tangan)
             else if (itemOnTop instanceof Plate && player.inventory instanceof Ingredient) {
                 ((Plate) itemOnTop).addItem((Ingredient) player.inventory);
                 player.inventory = null;
             }
+            // Ambil Item (Jika tangan kosong)
             else if (player.inventory == null) {
                 player.inventory = itemOnTop;
                 itemOnTop = null;
             }
         }
-        // KASUS 2: Meja Kosong
+        // KASUS 2: Meja Kosong -> Taruh Item
         else {
             if (player.inventory != null) {
                 itemOnTop = player.inventory;
@@ -90,7 +104,6 @@ public class AssemblyStation extends Tile {
     }
 
     public void draw(Graphics2D g2, int x, int y) {
-        // ... (Isi draw TETAP SAMA, tidak perlu diubah) ...
         if (image != null) {
             g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
         }

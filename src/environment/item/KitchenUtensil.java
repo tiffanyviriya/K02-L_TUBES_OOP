@@ -123,7 +123,7 @@ public ArrayList<Ingredient> serveToPlate() {
         // 1. Gambar Utensil dengan ukuran TILESIZE (48x48) agar besar
         // Kita tidak pakai super.draw() karena itu pakai itemSize (kecil)
         if (image != null) {
-            g2.drawImage(image, x, y, gp.tileSize-16, gp.tileSize-16, null);
+            g2.drawImage(image, x + 8, y + 8, gp.tileSize-16, gp.tileSize-16, null);
         }
 
         // 2. Fallback Visual: Gambar bahan di tengah jika ada isinya
@@ -134,7 +134,7 @@ public ArrayList<Ingredient> serveToPlate() {
                 if (ig.image != null) {
                     // Gambar kecil di tengah panci
                     // Koordinat +12 biar di tengah (48 - 24) / 2
-                    g2.drawImage(ig.image, x + 12, y + 10, 24, 24, null);
+                    g2.drawImage(ig.image, x + 8, y + 8, 24, 24, null);
                 }
             }
         }

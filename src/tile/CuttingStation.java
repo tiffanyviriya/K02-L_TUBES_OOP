@@ -6,11 +6,14 @@ import environment.entity.PlayerState;
 import environment.food_related.Ingredient;
 import environment.food_related.IngredientState;
 import environment.item.Item;
+import environment.item.KitchenUtensil;
+import environment.item.Plate;
 import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class CuttingStation extends Tile {
 
@@ -38,16 +41,36 @@ public class CuttingStation extends Tile {
 
     @Override
     public void interact(Entity player) {
-        // KASUS 1: Menaruh Item (Syarat: Meja kosong, Tangan player isi)
-        if (itemOnTop == null && player.inventory != null) {
-            itemOnTop = player.inventory;
-            player.inventory = null;
-            System.out.println("Menaruh " + itemOnTop.name + " di Cutting Station");
-            return;
-        }
-
-        // KASUS 2: Interaksi dengan Item di Meja
+        // KASUS 1: Meja Ada Item
         if (itemOnTop != null) {
+
+            // Cek apakah item sedang dipotong?
+            if (activePlayer != null && activePlayer != player) {
+                System.out.println("Station sedang digunakan chef lain!");
+                return;
+            }
+
+            // --- LOGIKA BARU: Tuang Panci ke Piring di Meja ---
+            if (itemOnTop instanceof Plate && player.inventory instanceof KitchenUtensil) {
+                // Stop cutting jika ada progress gantung (safety)
+                if (activePlayer == player) stopCutting();
+
+                Plate plate = (Plate) itemOnTop;
+                KitchenUtensil utensil = (KitchenUtensil) player.inventory;
+
+                ArrayList<Ingredient> food = utensil.serveToPlate();
+
+                if (food != null) {
+                    for (Ingredient i : food) {
+                        plate.addItem(i);
+                    }
+                    System.out.println("Plating: Makanan dari " + utensil.name + " dituang ke Piring di Cutting Station.");
+                } else {
+                    System.out.println("Gagal: Makanan belum matang atau gosong.");
+                }
+                return;
+            }
+            // --------------------------------------------------
 
             boolean isRawIngredient = false;
             if (itemOnTop instanceof Ingredient) {
@@ -56,37 +79,63 @@ public class CuttingStation extends Tile {
                 }
             }
 
-            // A. LOGIKA CUTTING (TOGGLE ON/OFF)
+            // A. LOGIKA CUTTING
             if (isRawIngredient && player.inventory == null) {
-
-                // Jika Station SEDANG DIPAKAI orang lain -> Abaikan
-                if (activePlayer != null && activePlayer != player) {
-                    System.out.println("Station sedang digunakan chef lain!");
-                    return;
-                }
-
-                // TOGGLE LOGIC
                 if (activePlayer == null) {
-                    // --- MULAI MEMOTONG (START) ---
                     startCutting(player);
                 } else {
-                    // --- BERHENTI MEMOTONG (STOP) ---
                     stopCutting();
+                }
+                return;
+            }
+
+            // B. LOGIKA ASSEMBLY LAINNYA
+
+            // 1. Player bawa Piring -> Plating (Ambil bahan dari meja)
+            if (player.inventory instanceof Plate) {
+                if (activePlayer == player) stopCutting();
+
+                Plate plate = (Plate) player.inventory;
+                if (itemOnTop instanceof Ingredient) {
+                    plate.addItem((Ingredient) itemOnTop);
+                    itemOnTop = null;
                 }
             }
 
-            // B. MENGAMBIL ITEM
+            // 2. Player bawa Kitchen Utensil -> Masukkan bahan dari meja ke panci
+            else if (player.inventory instanceof KitchenUtensil) {
+                if (activePlayer == player) stopCutting();
+
+                KitchenUtensil utensil = (KitchenUtensil) player.inventory;
+                if (itemOnTop instanceof Ingredient) {
+                    Ingredient ing = (Ingredient) itemOnTop;
+                    if (ing.canBeCooked() && !utensil.isCooked && !utensil.isBurned) {
+                        utensil.addIngredient(ing);
+                        itemOnTop = null;
+                    }
+                }
+            }
+
+            // 3. Player bawa Ingredient -> Gabung ke Piring di Meja
+            else if (player.inventory instanceof Ingredient && itemOnTop instanceof Plate) {
+                ((Plate) itemOnTop).addItem((Ingredient) player.inventory);
+                player.inventory = null;
+            }
+
+            // 4. Player Tangan Kosong -> Ambil Item
             else if (player.inventory == null) {
-                // Jangan ambil jika sedang dipotong orang lain
-                if (activePlayer != null && activePlayer != player) return;
-
-                // Stop dulu kalau sedang jalan
                 stopCutting();
-
                 player.inventory = itemOnTop;
                 itemOnTop = null;
-                currentProgress = 0; // Reset progress saat diambil
-                System.out.println("Mengambil item.");
+                currentProgress = 0;
+            }
+        }
+
+        // KASUS 2: Meja Kosong -> Taruh Item
+        else {
+            if (player.inventory != null) {
+                itemOnTop = player.inventory;
+                player.inventory = null;
             }
         }
     }
@@ -144,7 +193,21 @@ public class CuttingStation extends Tile {
         if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
 
         if (itemOnTop != null) {
-            g2.drawImage(itemOnTop.image, x + 12, y + 12, gp.itemSize, gp.itemSize, null);
+            // [PERBAIKAN] Logika Centering Dinamis
+
+            if (itemOnTop instanceof KitchenUtensil) {
+                // Utensil digambar dengan ukuran (tileSize - 16) di kelasnya
+                // Maka offset agar ke tengah = 8
+                int offset = 8;
+                itemOnTop.draw(g2, x + offset, y + offset);
+            } else {
+                // Item biasa digambar dengan itemSize (24)
+                // Offset = (LebarTile - LebarItem) / 2
+                int centerOffset = (gp.tileSize - gp.itemSize) / 2;
+
+                // Gunakan itemOnTop.draw() agar properti worldX/Y di item ikut terupdate
+                itemOnTop.draw(g2, x + centerOffset, y + centerOffset);
+            }
 
             if (currentProgress > 0) {
                 int barWidth = 32;
@@ -162,7 +225,6 @@ public class CuttingStation extends Tile {
                 g2.setColor(Color.BLACK);
                 g2.drawRect(screenX, screenY, barWidth, barHeight);
 
-                // Indikator visual jika sedang aktif
                 if (activePlayer != null) {
                     g2.setColor(Color.YELLOW);
                     g2.drawRect(screenX - 2, screenY - 2, barWidth + 4, barHeight + 4);
