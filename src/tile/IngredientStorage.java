@@ -24,38 +24,43 @@ public class IngredientStorage extends Tile {
     }
 
     private void loadStorageImage() {
+        // Coba load gambar spesifik, misal: "/statio
+        String specificPath = "/stations/ingredient-storage-" + ingredientName + ".png";
+
         try {
-            image = ImageIO.read(getClass().getResourceAsStream("/stations/storage-sementara.png"));
+            image = ImageIO.read(getClass().getResourceAsStream(specificPath));
         } catch (Exception e) {
-            e.printStackTrace();
+            // Jika gambar spesifik tidak ada, gunakan default "storage-sementara.png"
+            try {
+                image = ImageIO.read(getClass().getResourceAsStream("/stations/storage-sementara.png"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
     @Override
     public void interact(Entity player) {
-        // KASUS 1: Ada item di atas Storage (Berperilaku seperti meja)
+        // KASUS 1: Ada item di atas Storage
         if (itemOnTop != null) {
-            // Jika tangan player kosong, AMBIL item dari atas storage
             if (player.inventory == null) {
                 player.inventory = itemOnTop;
                 itemOnTop = null;
                 System.out.println("Player mengambil " + player.inventory.name + " dari atas storage.");
             }
-            // Jika player membawa piring dan di atas storage ada makanan (opsional logic)
-            // ... (bisa ditambahkan nanti)
             else {
                 System.out.println("Tangan penuh! Tidak bisa mengambil item.");
             }
         }
-        // KASUS 2: Storage KOSONG (Berperilaku sebagai Spawner)
+        // KASUS 2: Storage KOSONG -> Spawn Bahan Baru
         else {
-            // Jika tangan player kosong -> SPAWN Bahan Baru
             if (player.inventory == null) {
+                // Spawn bahan sesuai nama ingredientName (misal: "rice", "fish")
                 player.inventory = new Ingredient(gp, ingredientName);
                 System.out.println("Player mengambil " + ingredientName + " baru.");
             }
-            // Jika tangan player ada item -> TARUH item tersebut di atas storage
             else {
+                // Taruh item player ke atas storage
                 itemOnTop = player.inventory;
                 player.inventory = null;
                 System.out.println("Player menaruh " + itemOnTop.name + " di atas storage.");
