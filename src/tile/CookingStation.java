@@ -1,15 +1,14 @@
 package tile;
 
-import environment.Entity;
-import environment.Ingredient;
-import environment.KitchenUtensil;
-import environment.Plate;
-import main.GamePanel;
+import environment.entity.Entity;
+import environment.food_related.Ingredient;
+import environment.item.KitchenUtensil;
+import environment.item.Plate;
+import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class CookingStation extends Tile {
 

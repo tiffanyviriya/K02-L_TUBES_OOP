@@ -1,11 +1,10 @@
 package tile;
 
-import environment.Entity;
-import environment.Item;
-import environment.Plate;
-import main.GamePanel;
-import environment.Player;
-import main.PlayerState;
+import environment.entity.Entity;
+import environment.item.Item;
+import main.util.GamePanel;
+import environment.entity.Player;
+import main.util.PlayerState;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

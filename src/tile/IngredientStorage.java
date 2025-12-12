@@ -1,10 +1,11 @@
 package tile;
 
-import java.io.IOException;
 import javax.imageio.ImageIO;
 
-import environment.*;
-import main.GamePanel;
+import environment.entity.Entity;
+import environment.food_related.Ingredient;
+import environment.item.Item;
+import main.util.GamePanel;
 
 public class IngredientStorage extends Tile {
 

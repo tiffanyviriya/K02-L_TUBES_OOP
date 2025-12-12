@@ -1,9 +1,8 @@
 package tile;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import environment.Entity;
-import main.GamePanel;
+import environment.entity.Entity;
+import main.util.GamePanel;
 
 public class Tile {
     GamePanel gp;

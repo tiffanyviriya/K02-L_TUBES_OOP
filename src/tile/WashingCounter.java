@@ -1,8 +1,8 @@
 package tile;
 
-import environment.Entity;
-import environment.Item;
-import main.GamePanel;
+import environment.entity.Entity;
+import environment.item.Item;
+import main.util.GamePanel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
