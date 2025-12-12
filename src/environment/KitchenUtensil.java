@@ -28,6 +28,7 @@ public class KitchenUtensil extends Item {
         super(gp);
         this.name = name;
         this.collision = true;
+        solidArea = new Rectangle(0,0, 24,24);
 
         loadAllImages();
         updateLook();
