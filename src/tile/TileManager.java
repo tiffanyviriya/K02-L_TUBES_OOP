@@ -89,10 +89,10 @@ public class TileManager {
                 case 7:
                     worldTiles[col][row] = new AssemblyStation(gp);
                     break;
-                case 8:
+                case 15:
                     worldTiles[col][row] = new WashingStation(gp, col, row);
                     break;
-                case 9:
+                case 16:
                     worldTiles[col][row] = new WashingCounter(gp);
                     break;
                 default: // Default floor
