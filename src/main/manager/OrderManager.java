@@ -57,7 +57,7 @@ public class OrderManager {
         Recipe ebiMaki = new Recipe("Ebi Maki", 150, 60);
         ebiMaki.addIngredient("nori", IngredientState.RAW);
         ebiMaki.addIngredient("rice", IngredientState.COOKED);
-        ebiMaki.addIngredient("shrimp", IngredientState.CHOPPED);
+        ebiMaki.addIngredient("shrimp", IngredientState.COOKED);
 
         levelRecipes.add(kappaMaki);
         levelRecipes.add(sakanaMaki);

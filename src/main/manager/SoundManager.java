@@ -5,8 +5,12 @@ import main.util.Sound;
 public class SoundManager {
 
     private Sound music = new Sound();
-    private Sound se = new Sound(); // Sound Effect biasa
-    private Sound seLoop = new Sound(); // Sound Effect khusus Looping (Cutting)
+    private Sound se = new Sound();
+    private Sound seLoop = new Sound(); // Untuk Cutting
+
+    // [BARU] Channel khusus alat masak
+    private Sound soundPot = new Sound();
+    private Sound soundPan = new Sound();
 
     private int currentMusicId = -1;
     private boolean isMusicPlaying = false;
@@ -31,21 +35,47 @@ public class SoundManager {
         }
     }
 
-    // Play Sound Effect sekali (Error, Serving, dll)
     public void playSE(int i) {
         se.setFile(i);
         se.play();
     }
 
-    // [BARU] Play Sound Effect Looping (Cutting)
     public void playSELoop(int i) {
         seLoop.setFile(i);
         seLoop.play();
         seLoop.loop();
     }
 
-    // [BARU] Stop Sound Effect Looping
     public void stopSELoop() {
         seLoop.stop();
+    }
+
+    // --- METHOD BARU UNTUK ALAT MASAK ---
+
+    public void playPotSound() {
+        // Cek agar tidak restart sound kalau sudah main
+        // (Sound class sederhana mungkin butuh logic tambahan, tapi play() biasanya aman)
+        soundPot.setFile(1); // Index 1: Boiling Pot
+        soundPot.play();
+        soundPot.loop();
+    }
+
+    public void stopPotSound() {
+        soundPot.stop();
+    }
+
+    public void playPanSound() {
+        soundPan.setFile(2); // Index 2: Cooking Pan
+        soundPan.play();
+        soundPan.loop();
+    }
+
+    public void stopPanSound() {
+        soundPan.stop();
+    }
+
+    public void stopAllCookingSounds() {
+        stopPotSound();
+        stopPanSound();
     }
 }

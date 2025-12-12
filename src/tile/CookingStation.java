@@ -75,6 +75,12 @@ public class CookingStation extends Tile {
 
             // C. Angkat Panci (Tangan Kosong)
             else if (player.inventory == null) {
+
+                // [FIX]: Matikan suara sebelum diangkat
+                if (utensilOnStation != null) {
+                    utensilOnStation.stopCookingSound();
+                }
+
                 player.inventory = utensilOnStation;
                 utensilOnStation = null;
                 System.out.println("Mengangkat panci/wajan.");
