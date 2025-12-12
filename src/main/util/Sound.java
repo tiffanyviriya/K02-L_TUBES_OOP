@@ -14,9 +14,18 @@ public class Sound {
 
     public Sound()
     {
-        soundURL[0] = getClass().getResource("/sound/nimonsbeat.wav");
-        soundURL[3] = getClass().getResource("/sound/Serving(_).wav");
-        soundURL[6] = getClass().getResource("/sound/Error_Action.wav");
+        try {
+            soundURL[0] = getClass().getResource("/sound/nimonsbeat.wav");
+            // Index 1: Suara Boiling Pot
+            soundURL[1] = getClass().getResource("/sound/Boiling_Pot.wav");
+            // Index 2: Suara Cooking Pan
+            soundURL[2] = getClass().getResource("/sound/Cooking Pan.wav");
+            soundURL[3] = getClass().getResource("/sound/Serving(_).wav");
+            soundURL[6] = getClass().getResource("/sound/Error_Action.wav");
+            soundURL[9] = getClass().getResource("/sound/Cutting.wav");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setFile(int i)

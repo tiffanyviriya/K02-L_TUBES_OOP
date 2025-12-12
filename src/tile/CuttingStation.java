@@ -142,6 +142,14 @@ public class CuttingStation extends Tile {
 
     // --- LOGIKA UPDATE (Jalan Otomatis) ---
     public void update() {
+
+        // [FIX UTAMA]: Jika player yang sedang memotong BUKAN player yang aktif dimainkan, HENTIKAN CUTTING.
+        // Ini mencegah player lama "nyangkut" dalam status BUSY saat di-switch.
+        if (activePlayer != null && activePlayer != gp.playerM.getActivePlayer()) {
+            stopCutting();
+            return;
+        }
+
         // Jika ada player yang aktif memotong, jalankan progress
         if (activePlayer != null && itemOnTop != null) {
 
@@ -169,6 +177,7 @@ public class CuttingStation extends Tile {
         if (player instanceof Player) {
             ((Player) player).playerState = PlayerState.BUSY;
         }
+        gp.soundM.playSE(9); // Opsional: Play sound cutting start
         System.out.println("Mulai memotong...");
     }
 
@@ -186,6 +195,7 @@ public class CuttingStation extends Tile {
         }
         currentProgress = 0;
         stopCutting();
+        gp.soundM.playSE(9); // Opsional: Sound selesai
         System.out.println("Selesai memotong!");
     }
 
@@ -193,19 +203,12 @@ public class CuttingStation extends Tile {
         if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
 
         if (itemOnTop != null) {
-            // [PERBAIKAN] Logika Centering Dinamis
 
             if (itemOnTop instanceof KitchenUtensil) {
-                // Utensil digambar dengan ukuran (tileSize - 16) di kelasnya
-                // Maka offset agar ke tengah = 8
                 int offset = 8;
                 itemOnTop.draw(g2, x + offset, y + offset);
             } else {
-                // Item biasa digambar dengan itemSize (24)
-                // Offset = (LebarTile - LebarItem) / 2
                 int centerOffset = (gp.tileSize - gp.itemSize) / 2;
-
-                // Gunakan itemOnTop.draw() agar properti worldX/Y di item ikut terupdate
                 itemOnTop.draw(g2, x + centerOffset, y + centerOffset);
             }
 
