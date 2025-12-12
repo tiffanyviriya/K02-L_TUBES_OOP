@@ -20,9 +20,6 @@ public class TrashStation extends Tile {
         this.collision = true;
 
         try {
-            // Sesuaikan path ini dengan lokasi gambar Trash Station Anda
-            // Berdasarkan file yang diupload: /Sprites_Overcooked/Sprites_Stations/Trash_Station.png
-            // Atau jika Anda sudah memindahkannya ke folder /stations/:
             this.image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/stations/Trash_Station.png")));
         } catch (Exception e) {
             System.err.println("Gagal memuat gambar Trash Station.");
@@ -67,10 +64,11 @@ public class TrashStation extends Tile {
         else if (player.inventory instanceof Plate) {
             Plate plate = (Plate) player.inventory;
 
-            // Cek apakah ada makanan di piring
-            if (!plate.itemOnPlate.isEmpty()) {
+            // Cek apakah ada makanan di piring (Bahan atau Dish jadi)
+            if (!plate.itemOnPlate.isEmpty() || plate.completedDish != null) {
                 // Hapus makanan dari piring
                 plate.itemOnPlate.clear();
+                plate.completedDish = null; // Reset visual dish juga
                 System.out.println("Trash Station: Makanan di piring dibuang.");
             } else {
                 System.out.println("Trash Station: Piring sudah bersih.");

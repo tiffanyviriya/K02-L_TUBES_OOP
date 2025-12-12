@@ -23,6 +23,11 @@ public class PlayerManager {
         return players[activeIndex];
     }
 
+    // --- TAMBAHAN GETTER UNTUK COLLISION CHECKER ---
+    public Player[] getPlayers() {
+        return players;
+    }
+
     public void update() {
         getActivePlayer().update();
     }
