@@ -13,7 +13,7 @@ import java.io.InputStream;
 
 public class MainMenuScene implements Scene {
 
-    protected GamePanel gp;
+    public GamePanel gp;
     public MainMenuSceneMouseHandler mouseHandler;
 
     // UI Elements

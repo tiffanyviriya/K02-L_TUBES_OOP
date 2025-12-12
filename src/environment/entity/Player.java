@@ -10,7 +10,6 @@ import javax.imageio.ImageIO;
 import environment.item.Item;
 import main.util.GamePanel;
 import main.handler.KeyHandler;
-import main.util.PlayerState;
 import tile.*;
 
 public class Player extends Entity {

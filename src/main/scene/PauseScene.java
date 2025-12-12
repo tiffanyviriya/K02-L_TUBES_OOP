@@ -8,7 +8,7 @@ import java.awt.event.MouseEvent;
 
 public class PauseScene implements Scene {
 
-    protected GamePanel gp;
+    public GamePanel gp;
     private PauseSceneMouseHandler mouseHandler;
 
     private Rectangle resumeButton;

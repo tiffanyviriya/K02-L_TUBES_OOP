@@ -8,7 +8,7 @@ import java.awt.event.MouseEvent;
 
 public class PlayScene implements Scene {
 
-    protected GamePanel gp;
+    public GamePanel gp;
     private PlaySceneMouseHandler mouseHandler;
 
     // Tombol Pause (Pojok kanan atas)

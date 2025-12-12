@@ -5,7 +5,7 @@ import environment.food_related.Ingredient;
 import environment.food_related.IngredientState;
 import environment.item.Item;
 import main.util.GamePanel;
-import main.util.PlayerState;
+import environment.entity.PlayerState;
 import environment.entity.Player;
 
 import javax.imageio.ImageIO;

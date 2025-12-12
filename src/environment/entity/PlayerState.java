@@ -1,4 +1,4 @@
-package main.util;
+package environment.entity;
 
 public enum PlayerState {
     IDLE,
