@@ -2,10 +2,7 @@ package main.util;
 
 import main.handler.KeyHandler;
 import main.manager.*;
-import main.scene.MainMenuScene;
-import main.scene.PauseScene;
-import main.scene.PlayScene;
-import main.scene.ResultScene;
+import main.scene.*;
 import tile.TileManager;
 
 import javax.swing.*;

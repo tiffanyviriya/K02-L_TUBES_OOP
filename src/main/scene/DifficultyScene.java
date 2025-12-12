@@ -1,4 +1,4 @@
-package main.manager;
+package main.scene;
 
 import main.util.GamePanel;
 import main.util.GameState;

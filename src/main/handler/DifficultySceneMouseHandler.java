@@ -1,6 +1,6 @@
 package main.handler;
 
-import main.manager.DifficultyScene;
+import main.scene.DifficultyScene;
 import main.util.GamePanel;
 import main.util.GameState;
 
