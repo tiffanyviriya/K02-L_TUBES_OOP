@@ -6,6 +6,7 @@ import environment.food_related.Order;
 import environment.food_related.Recipe;
 import environment.item.*;
 import main.util.GamePanel;
+import main.util.GameState;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -23,6 +24,11 @@ public class OrderManager {
     public int failedOrders = 0;
     private int spawnTimer = 0;
 
+    // --- IMPLEMENTASI NYAWA ---
+    public int lives = 5; // Nyawa awal
+    private final int LIVES_PENALTY = 1;
+    // ---
+
     public OrderManager(GamePanel gp) {
         this.gp = gp;
         setupRecipes();
@@ -34,6 +40,7 @@ public class OrderManager {
         score = 0;
         failedOrders = 0;
         spawnTimer = 0;
+        lives = 5;
     }
 
     private void setupRecipes() {
@@ -79,8 +86,12 @@ public class OrderManager {
                 System.out.println("Order " + order.recipe.name + " GAGAL! (Waktu Habis)");
                 score -= 50;
                 failedOrders++;
+                lives -= LIVES_PENALTY; // Nyawa berkurangce
+                System.out.println("Nyawa berkurang! Sisa: " + lives);
                 iterator.remove();
                 reindexOrders();
+                //New Method
+                checkGameOver();
             }
         }
     }
@@ -132,6 +143,13 @@ public class OrderManager {
             System.out.println("Makanan Salah! Penalti -50.");
             score -= 50;
             gp.soundM.playSE(6);
+            lives -= LIVES_PENALTY; // Nyawa berkurang karena salah saji
+            failedOrders++;
+
+            System.out.println("Lives berkurang (Salah Saji)! Sisa: " + lives);
+
+            // Panggil method lokal checkGameOver
+            checkGameOver();
         }
     }
 
@@ -148,6 +166,16 @@ public class OrderManager {
         return true;
     }
 
+    // --- Helper untuk cek kondisi kalah ---
+    private void checkGameOver() {
+        if (lives <= 0) {
+            System.out.println("GAME OVER! Nyawa habis.");
+            gp.gameState = GameState.RESULT;
+            // Jika ResultScene perlu update data, bisa panggil di sini
+            // gp.resultScene.processResult();
+        }
+    }
+
     public void draw(Graphics2D g2) {
         for (Order order : activeOrders) {
             order.draw(g2, 20, 10);
@@ -155,5 +183,29 @@ public class OrderManager {
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.BOLD, 20));
         g2.drawString("Score: " + score, gp.screenWidth - 150, 30);
+        // --- GAMBAR NYAWA ---
+        drawLives(g2);
+    }
+
+    private void drawLives(Graphics2D g2) {
+        int startX = 20;
+        int startY = gp.screenHeight - 20;
+
+        g2.setColor(Color.WHITE);
+        g2.drawString("Lives:", startX, startY);
+
+        int MAX_LIVES = 5;
+        for (int i = 0; i < MAX_LIVES; i++) {
+            int x = startX + 60 + (i * 25);
+            int y = startY - 15;
+
+            if (i < lives) {
+                g2.setColor(Color.RED);
+                g2.fillOval(x, y, 20, 20);
+            } else {
+                g2.setColor(Color.GRAY);
+                g2.drawOval(x, y, 20, 20);
+            }
+        }
     }
 }
