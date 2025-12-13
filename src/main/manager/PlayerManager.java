@@ -1,53 +1,57 @@
 package main.manager;
 
 import environment.entity.Player;
-import environment.entity.PlayerState; // Pastikan import ini ada
-import main.util.GamePanel;
 import main.handler.KeyHandler;
+import main.util.GamePanel;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class PlayerManager {
-    private GamePanel gp;
-    private KeyHandler keyH;
 
-    private Player[] players = new Player[2];
-    private int activeIndex = 0;
+    GamePanel gp;
+    KeyHandler keyH;
 
-    public PlayerManager(GamePanel gp, KeyHandler keyH){
+    // ArrayList Player (Public agar bisa diakses fitur Lempar di Player.java)
+    public ArrayList<Player> players = new ArrayList<>();
+
+    public int activePlayerIndex = 0;
+
+    public PlayerManager(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyH = keyH;
-        reset();
+        setupPlayers();
     }
 
-    // Method untuk mengembalikan Player ke kondisi awal
+    public void setupPlayers() {
+        players.clear();
+
+        // [UBAH KOORDINAT DI SINI]
+        // Ganti 10,10 menjadi posisi yang aman (misal 4,4 atau 5,5)
+        // Chef 1 di (5, 5)
+        players.add(new Player(gp, keyH, 5 * gp.tileSize, 5 * gp.tileSize));
+
+        // Chef 2 di (6, 5) - Sebelahnya
+        players.add(new Player(gp, keyH, 6 * gp.tileSize, 5 * gp.tileSize));
+
+        activePlayerIndex = 0;
+    }
+
+    // [FIX 1] Method reset() dipanggil oleh GamePanel saat restart/ganti level
     public void reset() {
-        players[0] = new Player(gp, keyH, 288, 240);
-        players[1] = new Player(gp, keyH, 576, 240);
-        activeIndex = 0;
+        setupPlayers();
     }
 
-    public void switchPlayer() {
-        // [FIX] Reset status player yang lama ke IDLE sebelum pindah
-        // Ini mencegah player lama "stuck" dalam kondisi BUSY (memasak/memotong)
-        if (getActivePlayer() != null) {
-            getActivePlayer().playerState = PlayerState.IDLE;
-        }
-
-        // Pindah index ke player berikutnya
-        activeIndex = (activeIndex + 1) % players.length;
-    }
-
-    public Player getActivePlayer() {
-        return players[activeIndex];
-    }
-
-    public Player[] getPlayers(){
-        return players;
+    // [FIX 2] Method getPlayers() dipanggil oleh CollisionChecker
+    // Mengembalikan Array karena CollisionChecker mengharapkan Player[]
+    public Player[] getPlayers() {
+        return players.toArray(new Player[0]);
     }
 
     public void update() {
-        getActivePlayer().update();
+        if (getActivePlayer() != null) {
+            getActivePlayer().update();
+        }
     }
 
     public void draw(Graphics2D g2) {
@@ -55,14 +59,31 @@ public class PlayerManager {
             p.draw(g2);
         }
 
-        // Opsional: Gambar indikator (panah) di atas player yang aktif
+        // Gambar panah di atas player aktif
         Player active = getActivePlayer();
         if (active != null) {
-            g2.setColor(Color.WHITE);
-            // Gambar segitiga kecil di atas kepala
-            int [] xPoints = {active.pos.x + 16, active.pos.x + 8, active.pos.x + 24};
-            int [] yPoints = {active.pos.y - 10, active.pos.y - 20, active.pos.y - 20};
+            int arrowX = active.pos.x + 12;
+            int arrowY = active.pos.y - 10;
+
+            g2.setColor(Color.RED);
+            int[] xPoints = {arrowX, arrowX + 8, arrowX - 8};
+            int[] yPoints = {arrowY + 8, arrowY, arrowY};
             g2.fillPolygon(xPoints, yPoints, 3);
         }
+    }
+
+    public void switchPlayer() {
+        if (players.isEmpty()) return;
+
+        activePlayerIndex++;
+        if (activePlayerIndex >= players.size()) {
+            activePlayerIndex = 0;
+        }
+        System.out.println("Switched to Chef " + (activePlayerIndex + 1));
+    }
+
+    public Player getActivePlayer() {
+        if (players.isEmpty()) return null;
+        return players.get(activePlayerIndex);
     }
 }

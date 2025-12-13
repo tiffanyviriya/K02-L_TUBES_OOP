@@ -14,25 +14,30 @@ public class Sound {
 
     public Sound() {
         try {
-            // --- Index Fix dari Anda ---
-            soundURL[0] = getClass().getResource("/sound/nimonsbeat.wav"); // BGM
+            // Index 0: BGM
+            soundURL[0] = getClass().getResource("/sound/nimonsbeat.wav");
+
+            // Index 1-2: Cooking
             soundURL[1] = getClass().getResource("/sound/Boiling_Pot.wav");
             soundURL[2] = getClass().getResource("/sound/Cooking Pan.wav");
+
+            // Index 3: Serving
             soundURL[3] = getClass().getResource("/sound/Serving(_).wav");
-            soundURL[6] = getClass().getResource("/sound/Error_Action.wav");
-            soundURL[9] = getClass().getResource("/sound/Cutting.wav");
 
-            // --- [WAJIB ADA] Index Tambahan untuk Ambience & Result ---
-            // Tanpa ini, suara keramaian dan game over akan bisu/rusak!
-
-            // Index 5: Ambience (Orang Berisik)
+            // [PENTING] Index 5: Ambience (Suara Resto)
             soundURL[5] = getClass().getResource("/sound/orangberisikdiresto.wav");
 
-            // Index 7: Game Over (Kalah)
+            // Index 6: Error
+            soundURL[6] = getClass().getResource("/sound/Error_Action.wav");
+
+            // [PENTING] Index 7: Game Over
             soundURL[7] = getClass().getResource("/sound/Game_Over.wav");
 
-            // Index 8: Menang
+            // [PENTING] Index 8: Menang / Victory
             soundURL[8] = getClass().getResource("/sound/Menang.wav");
+
+            // Index 9: Cutting
+            soundURL[9] = getClass().getResource("/sound/Cutting.wav");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,10 +46,7 @@ public class Sound {
 
     public void setFile(int i) {
         try {
-            if (soundURL[i] == null) {
-                // System.out.println("Sound index " + i + " is null/not set!");
-                return;
-            }
+            if (soundURL[i] == null) return;
             AudioInputStream ais = AudioSystem.getAudioInputStream(soundURL[i]);
             clip = AudioSystem.getClip();
             clip.open(ais);
@@ -70,15 +72,13 @@ public class Sound {
     public void stop() {
         if (clip != null) {
             clip.stop();
-            clip.close(); // Penting: Close clip untuk menghemat memory resource
+            clip.close(); // Close agar resource lepas
         }
     }
 
     public void setVolume(float v) {
         this.volume = v;
         if (fc != null) {
-            // Rumus konversi float (0.0 - 1.0) ke Decibel
-            // Mencegah error jika v <= 0
             if (v <= 0f) v = 0.0001f;
             float dB = (float) (Math.log(v) / Math.log(10.0) * 20.0);
             fc.setValue(dB);

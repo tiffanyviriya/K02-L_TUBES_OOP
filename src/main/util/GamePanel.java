@@ -107,49 +107,54 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void changeGameState(GameState newState) {
+
+        // [PERBAIKAN KRUSIAL]
+        // Cegah fungsi ini dijalankan berulang-ulang jika state sudah sama.
+        // Ini mencegah suara dimainkan 60x per detik (looping error).
+        if (this.gameState == newState) {
+            return;
+        }
+
         this.gameState = newState;
 
         switch (newState) {
             case MAINMENU:
-                // [UBAH] Masuk Menu -> Mainkan Nimonsbeat, Matikan Ambience
                 soundM.stopAmbience();
                 soundM.playMusic(0);
                 break;
 
             case DIFFICULTY_SELECT:
-                // (Opsional) Tetap mainkan Nimonsbeat di layar pilih level
                 if (!soundM.isMusicPlaying()) {
                     soundM.playMusic(0);
                 }
                 break;
 
             case PLAYING:
-                // [UBAH] Masuk Game -> Matikan Nimonsbeat, Mainkan Suara Resto
-                soundM.stopMusic();     // Stop lagu menu
-                soundM.playAmbience(5); // Play suara orang berisik (Looping)
+                soundM.stopMusic();
+                soundM.playAmbience(5);
                 break;
 
             case PAUSE:
-                // Tidak ada perubahan suara saat pause (tetap bunyi resto)
                 break;
 
             case RESULT:
-                // [UBAH] Selesai -> Matikan semua suara background
+                // Matikan semua suara background
                 soundM.stopMusic();
-                soundM.stopAmbience();
+                soundM.stopAmbience(); // Pastikan index 5 ada di Sound.java
                 soundM.stopAllCookingSounds();
                 soundM.stopSELoop();
 
-                // Mainkan suara Menang/Kalah
+                // Mainkan suara Menang/Kalah SEKALI SAJA
                 if (scoreM.isLevelCleared(currentDifficulty)) {
-                    soundM.playWinSound();
+                    System.out.println("WIN!");
+                    soundM.playSE(8);
                 } else {
-                    soundM.playLoseSound();
+                    System.out.println("LOSE!");
+                    soundM.playSE(7);
                 }
                 break;
 
             case RECIPE_BOOK:
-                // Tidak ada perubahan
                 break;
         }
     }

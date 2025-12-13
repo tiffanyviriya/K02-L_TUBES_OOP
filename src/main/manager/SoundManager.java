@@ -4,11 +4,11 @@ import main.util.Sound;
 
 public class SoundManager {
 
-    // CHANNEL SUARA
     private Sound music = new Sound();
-    private Sound ambient = new Sound();
+    private Sound ambient = new Sound(); // Channel khusus Ambience
     private Sound se = new Sound();
     private Sound seLoop = new Sound();
+
     private Sound soundPot = new Sound();
     private Sound soundPan = new Sound();
 
@@ -18,11 +18,9 @@ public class SoundManager {
     public SoundManager() {
     }
 
-    // --- MUSIC CONTROL ---
+    // --- MUSIC ---
     public void playMusic(int i) {
-        // Cek agar tidak merestart lagu yang sama jika sedang main
         if (currentMusicId == i && isMusicPlaying) return;
-
         stopMusic();
         music.setFile(i);
         music.play();
@@ -38,41 +36,49 @@ public class SoundManager {
         }
     }
 
-    // [PERBAIKAN] Tambahkan method ini agar GamePanel tidak error
     public boolean isMusicPlaying() {
         return isMusicPlaying;
     }
 
-    // --- AMBIENCE CONTROL ---
+    // --- AMBIENCE (Suara Resto) ---
     public void playAmbience(int i) {
         ambient.setFile(i);
-        ambient.setVolume(0.6f);
+        ambient.setVolume(0.7f); // Volume 70%
         ambient.play();
-        ambient.loop();
+        ambient.loop(); // Loop terus sampai di-stop
     }
 
     public void stopAmbience() {
         ambient.stop();
     }
 
-    // --- SFX CONTROL ---
+    // --- SFX & WIN/LOSE ---
     public void playSE(int i) {
         se.setFile(i);
         se.play();
     }
 
     public void playWinSound() {
+        // Matikan semua suara background sebelum mainkan victory
         stopMusic();
         stopAmbience();
-        playSE(8); // Index 8: Menang
+        stopAllCookingSounds();
+        stopSELoop();
+
+        playSE(8); // Index 8: Menang.wav
     }
 
     public void playLoseSound() {
+        // Matikan semua suara background sebelum mainkan game over
         stopMusic();
         stopAmbience();
-        playSE(7); // Index 7: Game_Over
+        stopAllCookingSounds();
+        stopSELoop();
+
+        playSE(7); // Index 7: Game_Over.wav
     }
 
+    // --- COOKING & CUTTING ---
     public void playSELoop(int i) {
         seLoop.setFile(i);
         seLoop.play();
@@ -83,7 +89,6 @@ public class SoundManager {
         seLoop.stop();
     }
 
-    // --- COOKING SOUNDS ---
     public void playPotSound() {
         soundPot.setFile(1);
         soundPot.play();
