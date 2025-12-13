@@ -176,6 +176,22 @@ public class GamePanel extends JPanel implements Runnable {
             lastTime = currentTime;
 
             update(deltaTime);
+
+            // --- CEK GAME OVER ---
+            if (gameState == GameState.PLAYING) {
+                // 1. Cek Nyawa Habis (dari OrderManager)
+                if (orderM.lives <= 0) {
+                    System.out.println("GAME OVER! Nyawa habis.");
+                    changeGameState(GameState.RESULT);
+                }
+
+                // 2. Cek Waktu Habis (dari UITimer)
+                if (uiTimer.isTimeUp()) {
+                    System.out.println("GAME OVER! Waktu habis.");
+                    changeGameState(GameState.RESULT);
+                }
+            }
+
             repaint();
 
             try {
