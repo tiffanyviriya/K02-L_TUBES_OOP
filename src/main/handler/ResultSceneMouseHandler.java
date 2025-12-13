@@ -20,12 +20,9 @@ public class ResultSceneMouseHandler extends MouseAdapter {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        // Pastikan hanya mendeteksi klik jika sedang di layar RESULT
         if (gp.gameState == GameState.RESULT) {
             Point p = e.getPoint();
-            // Cek apakah tombol menu diklik
             if (resultScene.getMenuButton().contains(p)) {
-                // Kembali ke Menu Utama
                 gp.changeGameState(GameState.MAINMENU);
             }
         }

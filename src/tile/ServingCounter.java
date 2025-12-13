@@ -18,7 +18,7 @@ public class ServingCounter extends Tile {
 
     private class PendingPlate {
         Plate plate;
-        int timer; // Timer pengembalian piring
+        int timer;
 
         public PendingPlate(Plate plate, int timer) {
             this.plate = plate;
@@ -27,64 +27,52 @@ public class ServingCounter extends Tile {
     }
 
     private ArrayList<PendingPlate> pendingPlates = new ArrayList<>();
-    private final int RETURN_DELAY = 600; // 10 Detik * 60 FPS
+    private final int RETURN_DELAY = 600;
 
+    /* Konstruktor untuk inisialisasi counter penyajian dan memuat gambarnya */
     public ServingCounter(GamePanel gp) {
         super(gp);
         this.collision = true;
         loadCounterImage();
     }
 
+    /* Memuat gambar visual untuk counter penyajian */
     private void loadCounterImage() {
         try {
             image = ImageIO.read(getClass().getResourceAsStream("/stations/servingcounter.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
     }
 
+    /* Menangani interaksi pemain saat menyajikan makanan, memvalidasi resep, dan mengambil piring */
     @Override
     public void interact(Entity player) {
-        // Syarat: Player harus memegang PIRING (Plate)
         if (player.inventory instanceof Plate) {
             Plate servedPlate = (Plate) player.inventory;
 
-            // Pastikan piring tidak kosong
             if (!servedPlate.itemOnPlate.isEmpty()) {
 
-                // 1. Ekstrak daftar bahan (String) dari piring untuk validasi
                 ArrayList<String> plateIngredients = new ArrayList<>();
                 for (Preparable p : servedPlate.itemOnPlate) {
                     if (p instanceof Ingredient) {
                         Ingredient ing = (Ingredient) p;
-                        // Format string harus sama dengan yang ada di Recipe (misal: "fish_CHOPPED")
                         plateIngredients.add(ing.name + "_" + ing.state);
                     }
                 }
 
-                // 2. Kirim daftar bahan ke OrderManager untuk dicek (Benar/Salah)
                 gp.orderM.checkServing(plateIngredients);
 
-                // 3. Bersihkan Piring
-                servedPlate.completedDish = null; // Hapus Dish visual
-                servedPlate.itemOnPlate.clear();  // Hapus bahan-bahan
+                servedPlate.completedDish = null;
+                servedPlate.itemOnPlate.clear();
 
-                // 4. Ambil piring dari tangan player & mulai timer pengembalian
                 player.inventory = null;
                 pendingPlates.add(new PendingPlate(servedPlate, RETURN_DELAY));
-
-                System.out.println("Dish disajikan. Piring kembali dlm 10 detik.");
             }
-            else {
-                System.out.println("Gagal: Piring kosong!");
-            }
-        }
-        else {
-            System.out.println("Gagal: Anda harus menyajikan makanan di atas piring!");
         }
     }
 
-    // Logika pengembalian piring ke storage (tidak berubah)
+    /* Memperbarui timer pengembalian piring dan memproses piring yang waktunya habis */
     public void update() {
         if (pendingPlates.isEmpty()) return;
 
@@ -100,6 +88,7 @@ public class ServingCounter extends Tile {
         }
     }
 
+    /* Mengembalikan piring kotor ke tempat penyimpanan piring secara otomatis */
     private void returnPlateToStorage(Plate plate) {
         for (int col = 0; col < gp.maxScreenCol; col++) {
             for (int row = 0; row < gp.maxScreenRow; row++) {
@@ -108,13 +97,13 @@ public class ServingCounter extends Tile {
                     plate.plateState = PlateState.DIRTY;
                     plate.updateImage();
                     ps.storePlate(plate);
-                    System.out.println("Piring kotor dikembalikan ke Storage.");
                     return;
                 }
             }
         }
     }
 
+    /* Menggambar counter penyajian ke layar */
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) {
             g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);

@@ -252,8 +252,8 @@ public class GamePanel extends JPanel implements Runnable {
             tutorialScene.draw(g2);
         }
         else if (gameState == GameState.RECIPE_BOOK) {
-            playScene.draw(g2); // Gambar game di belakangnya
-            recipeBookScene.draw(g2); // Gambar buku di atasnya
+            playScene.draw(g2);
+            recipeBookScene.draw(g2);
         }
         g2.dispose();
     }

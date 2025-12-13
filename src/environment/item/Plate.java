@@ -13,9 +13,9 @@ public class Plate extends Item {
     public PlateState plateState;
     public Set<Preparable> itemOnPlate = new HashSet<>();
 
-    // Dish yang sudah jadi (bukan cuma gambar, tapi objek Dish)
     public Dish completedDish = null;
 
+    /* Konstruktor untuk inisialisasi piring dengan status bersih */
     public Plate(GamePanel gp) {
         super(gp);
         plateState = PlateState.CLEAN;
@@ -23,6 +23,7 @@ public class Plate extends Item {
         updateImage();
     }
 
+    /* Memperbarui gambar piring berdasarkan status bersih atau kotor */
     public void updateImage() {
         try {
             if (plateState == PlateState.CLEAN) {
@@ -32,50 +33,42 @@ public class Plate extends Item {
                 completedDish = null;
                 itemOnPlate.clear();
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {  }
     }
 
+    /* Menambahkan item ke piring dan mengecek apakah membentuk resep */
     public void addItem(Preparable preparable) {
-        // Tambah bahan
         itemOnPlate.add(preparable);
-
-        // [BARU] Langsung cek apakah jadi Resep?
         checkRecipe();
     }
 
-    // Method untuk mengecek resep secara otomatis
+    /* Mengecek apakah kombinasi bahan di piring sesuai dengan resep yang ada */
     public void checkRecipe() {
-        // Konversi Set ke List agar bisa dipakai oleh Dish.Builder
         java.util.List<Preparable> ingredientsList = new java.util.ArrayList<>(itemOnPlate);
 
-        // Gunakan Dish.Builder untuk mengecek resep
         Dish dish = new Dish.Builder(gp)
                 .addIngredients(ingredientsList)
                 .build();
 
         if (dish != null) {
             this.completedDish = dish;
-            System.out.println("Resep Terbentuk di Piring: " + dish.name);
         }
     }
 
+    /* Menggambar piring beserta isinya atau hidangan yang sudah jadi */
     @Override
     public void draw(Graphics2D g2, int x, int y) {
         super.draw(g2, x, y);
 
         if (plateState == PlateState.CLEAN) {
-            // 1. Jika sudah jadi Dish -> Gambar Dish
             if (completedDish != null && completedDish.image != null) {
-                // Gambar dish agak besar menutupi piring
                 g2.drawImage(completedDish.image, x, y, gp.itemSize, gp.itemSize, null);
             }
-            // 2. Jika belum jadi -> Gambar bahan-bahan numpuk
             else {
                 int count = 0;
                 for (Preparable p : itemOnPlate) {
                     if (p instanceof Item) {
                         Item item = (Item) p;
-                        // Geser sedikit tiap bahan biar kelihatan numpuk
                         int shift = count * 2;
                         g2.drawImage(item.image, x + shift, y - shift, gp.itemSize, gp.itemSize, null);
                         count++;

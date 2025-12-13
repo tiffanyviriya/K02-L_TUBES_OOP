@@ -23,12 +23,6 @@ public class Entity {
     public boolean collisionOn = false;
 
     public Item inventory = null;
-    public enum currentAction {
-        IDLE,
-        COOKING,
-        CUTTING,
-        ASSEMBLING
-    }
 
     public Entity(GamePanel gp) {
         this.gp = gp;

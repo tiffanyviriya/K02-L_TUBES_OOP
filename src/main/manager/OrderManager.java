@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Iterator;
 
+/* Manajer untuk mengatur pesanan, resep, skor, dan kondisi permainan (nyawa/game over) */
 public class OrderManager {
     protected GamePanel gp;
 
@@ -24,17 +25,16 @@ public class OrderManager {
     public int failedOrders = 0;
     private int spawnTimer = 0;
 
-    // --- IMPLEMENTASI NYAWA ---
-    public int lives = 5; // Nyawa awal
+    public int lives = 5;
     private final int LIVES_PENALTY = 1;
-    // ---
 
+    /* Menginisialisasi manajer pesanan dan memuat resep level */
     public OrderManager(GamePanel gp) {
         this.gp = gp;
         setupRecipes();
     }
 
-    // Method reset untuk memulai sesi baru
+    /* Mengatur ulang semua status permainan untuk sesi baru */
     public void reset() {
         activeOrders.clear();
         score = 0;
@@ -43,8 +43,8 @@ public class OrderManager {
         lives = 5;
     }
 
+    /* Mendefinisikan daftar resep yang tersedia untuk level ini */
     private void setupRecipes() {
-        // Setup resep (Kode sama seperti sebelumnya)
         Recipe kappaMaki = new Recipe("Kappa Maki", 200, 60);
         kappaMaki.addIngredient("nori", IngredientState.RAW);
         kappaMaki.addIngredient("rice", IngredientState.COOKED);
@@ -72,6 +72,7 @@ public class OrderManager {
         levelRecipes.add(fishcucumberRoll);
     }
 
+    /* Memperbarui logika pesanan, spawning, dan pengecekan kedaluwarsa */
     public void update() {
         if (activeOrders.size() < MAX_ORDERS) {
             spawnOrder();
@@ -83,23 +84,21 @@ public class OrderManager {
             order.update();
 
             if (order.isExpired) {
-                System.out.println("Order " + order.recipe.name + " GAGAL! (Waktu Habis)");
                 score -= 50;
                 failedOrders++;
-                lives -= LIVES_PENALTY; // Nyawa berkurangce
-                System.out.println("Nyawa berkurang! Sisa: " + lives);
+                lives -= LIVES_PENALTY;
                 iterator.remove();
                 reindexOrders();
-                //New Method
                 checkGameOver();
             }
         }
     }
 
+    /* Membuat pesanan baru secara acak jika slot tersedia dan timer terpenuhi */
     private void spawnOrder() {
         if (levelRecipes.isEmpty()) return;
         spawnTimer++;
-        if (spawnTimer < 200) return; // Delay spawn agak lamaan dikit
+        if (spawnTimer < 200) return;
         spawnTimer = 0;
 
         Random rand = new Random();
@@ -109,16 +108,16 @@ public class OrderManager {
         int newId = activeOrders.size();
         Order newOrder = new Order(newId, selectedRecipe, gp.FPS);
         activeOrders.add(newOrder);
-        System.out.println("New Order: " + selectedRecipe.name);
     }
 
+    /* Mengatur ulang ID pesanan agar berurutan sesuai posisi dalam list */
     private void reindexOrders() {
         for (int i = 0; i < activeOrders.size(); i++) {
             activeOrders.get(i).id = i;
         }
     }
 
-    // --- LOGIKA VALIDASI ORDER ---
+    /* Memeriksa apakah bahan di piring cocok dengan salah satu pesanan aktif */
     public void checkServing(ArrayList<String> plateIngredients) {
         if (plateIngredients.isEmpty()) return;
 
@@ -128,7 +127,6 @@ public class OrderManager {
             Order order = activeOrders.get(i);
 
             if (isRecipeMatch(order.recipe, plateIngredients)) {
-                System.out.println("Order Selesai: " + order.recipe.name);
                 score += order.recipe.reward;
                 gp.soundM.playSE(3);
 
@@ -140,19 +138,16 @@ public class OrderManager {
         }
 
         if (!matchFound) {
-            System.out.println("Makanan Salah! Penalti -50.");
             score -= 50;
             gp.soundM.playSE(6);
-            lives -= LIVES_PENALTY; // Nyawa berkurang karena salah saji
+            lives -= LIVES_PENALTY;
             failedOrders++;
 
-            System.out.println("Lives berkurang (Salah Saji)! Sisa: " + lives);
-
-            // Panggil method lokal checkGameOver
             checkGameOver();
         }
     }
 
+    /* Membandingkan isi piring dengan kebutuhan bahan resep */
     private boolean isRecipeMatch(Recipe recipe, ArrayList<String> plateContents) {
         if (recipe.requiredIngredients.size() != plateContents.size()) return false;
         ArrayList<String> tempPlate = new ArrayList<>(plateContents);
@@ -166,16 +161,14 @@ public class OrderManager {
         return true;
     }
 
-    // --- Helper untuk cek kondisi kalah ---
+    /* Mengecek kondisi kekalahan jika nyawa habis */
     private void checkGameOver() {
         if (lives <= 0) {
-            System.out.println("GAME OVER! Nyawa habis.");
             gp.gameState = GameState.RESULT;
-            // Jika ResultScene perlu update data, bisa panggil di sini
-            // gp.resultScene.processResult();
         }
     }
 
+    /* Menggambar antarmuka pesanan, skor, dan nyawa ke layar */
     public void draw(Graphics2D g2) {
         for (Order order : activeOrders) {
             order.draw(g2, 20, 10);
@@ -183,10 +176,10 @@ public class OrderManager {
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.BOLD, 20));
         g2.drawString("Score: " + score, gp.screenWidth - 150, 30);
-        // --- GAMBAR NYAWA ---
         drawLives(g2);
     }
 
+    /* Menggambar indikator visual nyawa pemain */
     private void drawLives(Graphics2D g2) {
         int startX = 20;
         int startY = gp.screenHeight - 20;

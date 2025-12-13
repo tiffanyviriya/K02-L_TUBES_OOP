@@ -17,36 +17,37 @@ public class CuttingStation extends Tile {
     public Item itemOnTop = null;
     private Entity activePlayer = null;
     private int currentProgress = 0;
-    private final int TIME_TO_CUT = 180; // 3 detik
+    private final int TIME_TO_CUT = 180;
 
+    /* Konstruktor untuk inisialisasi stasiun pemotong dan memuat gambarnya */
     public CuttingStation(GamePanel gp) {
         super(gp);
         this.collision = true;
         loadStationImage();
     }
 
+    /* Memuat gambar visual untuk stasiun pemotong */
     private void loadStationImage() {
         try {
             image = ImageIO.read(getClass().getResourceAsStream("/stations/cutting_station.png"));
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {  }
     }
 
+    /* Menangani interaksi pemain: menaruh bahan, memulai/menghentikan pemotongan, atau mengambil hasil */
     @Override
     public void interact(Entity player) {
-        // KASUS 1: Menaruh Item
         if (itemOnTop == null && player.inventory != null) {
-            // Validasi bahan seperti sebelumnya...
             if (player.inventory instanceof Ingredient) {
                 Ingredient ing = (Ingredient) player.inventory;
                 boolean isCuttable = ing.name.equalsIgnoreCase("shrimp") ||
                         ing.name.equalsIgnoreCase("fish") ||
                         ing.name.equalsIgnoreCase("cucumber");
                 if (!isCuttable) {
-                    gp.soundM.playSE(6); // Error Sound
+                    gp.soundM.playSE(6);
                     return;
                 }
             } else {
-                gp.soundM.playSE(6); // Error jika bukan ingredient
+                gp.soundM.playSE(6);
                 return;
             }
 
@@ -55,35 +56,28 @@ public class CuttingStation extends Tile {
             return;
         }
 
-        // KASUS 2: Interaksi (Start/Stop Cutting atau Ambil)
         if (itemOnTop != null) {
             boolean isRaw = false;
             if (itemOnTop instanceof Ingredient) {
                 if (((Ingredient) itemOnTop).state == IngredientState.RAW) isRaw = true;
             }
 
-            // A. START / STOP CUTTING
             if (isRaw && player.inventory == null) {
-                // Cek apakah station sedang dipakai orang lain?
                 if (activePlayer != null && activePlayer != player) {
-                    // Jika dipakai orang lain, jangan ganggu
                     return;
                 }
 
-                // TOGGLE LOGIC
                 if (activePlayer == null) {
-                    startCutting(player); // START
+                    startCutting(player);
                 } else {
-                    stopCutting(); // STOP
+                    stopCutting();
                 }
             }
 
-            // B. MENGAMBIL ITEM (Hanya jika progress berhenti/selesai)
             else if (player.inventory == null) {
-                // Jangan ambil paksa jika teman sedang memotong
                 if (activePlayer != null && activePlayer != player) return;
 
-                stopCutting(); // Pastikan reset state
+                stopCutting();
                 player.inventory = itemOnTop;
                 itemOnTop = null;
                 currentProgress = 0;
@@ -91,10 +85,9 @@ public class CuttingStation extends Tile {
         }
     }
 
+    /* Memperbarui progress pemotongan jika ada pemain yang aktif */
     public void update() {
-        // Jika ada player yang aktif, jalankan progress
         if (activePlayer != null && itemOnTop != null) {
-            // Kunci status player jadi BUSY terus menerus
             if (activePlayer instanceof Player) {
                 ((Player) activePlayer).playerState = PlayerState.BUSY;
             }
@@ -105,39 +98,39 @@ public class CuttingStation extends Tile {
                 finishCutting();
             }
         }
-        // Safety check: Jika barang diambil tiba-tiba
         else if (activePlayer != null && itemOnTop == null) {
             stopCutting();
         }
     }
 
+    /* Memulai proses pemotongan dan mengunci status pemain menjadi sibuk */
     private void startCutting(Entity player) {
         activePlayer = player;
         if (player instanceof Player) ((Player) player).playerState = PlayerState.BUSY;
 
-        gp.soundM.playSELoop(9); // Loop suara cutting
-        System.out.println("Start Cutting...");
+        gp.soundM.playSELoop(9);
     }
 
+    /* Menghentikan proses pemotongan dan mengembalikan status pemain menjadi idle */
     private void stopCutting() {
-        // Kembalikan player ke IDLE
         if (activePlayer instanceof Player) {
             ((Player) activePlayer).playerState = PlayerState.IDLE;
         }
         activePlayer = null;
 
-        gp.soundM.stopSELoop(); // Stop suara
-        System.out.println("Stop Cutting.");
+        gp.soundM.stopSELoop();
     }
 
+    /* Menyelesaikan proses pemotongan dan mengubah status bahan */
     private void finishCutting() {
         if (itemOnTop instanceof Ingredient) {
             ((Ingredient) itemOnTop).chop();
         }
         currentProgress = 0;
-        stopCutting(); // Ini akan stop suara dan bebaskan player
+        stopCutting();
     }
 
+    /* Menggambar stasiun, item di atasnya, dan progress bar pemotongan */
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
         if (itemOnTop != null) {

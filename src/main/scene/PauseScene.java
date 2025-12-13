@@ -17,6 +17,7 @@ public class PauseScene implements Scene {
     private boolean resumeHover = false;
     private boolean menuHover = false;
 
+    /* Konstruktor untuk inisialisasi scene pause, handler mouse, dan posisi tombol */
     public PauseScene(GamePanel gp) {
         this.gp = gp;
         this.mouseHandler = new PauseSceneMouseHandler(this);
@@ -30,22 +31,18 @@ public class PauseScene implements Scene {
         menuButton = new Rectangle(btnX, startY + 70, btnWidth, btnHeight);
     }
 
+    /* Memperbarui logika scene (tidak ada logika khusus saat game dipause) */
     @Override
     public void update() {
-        // Logika pause (biasanya kosong atau animasi tombol sederhana)
     }
 
+    /* Menggambar overlay transparan, judul status pause, dan tombol pilihan */
     @Override
     public void draw(Graphics2D g2) {
-        // --- OVERLAY TRANSPARAN ---
-        // Warna Hitam (0,0,0) dengan Alpha 150 (0-255).
-        // Semakin tinggi Alpha, semakin gelap.
         g2.setColor(new Color(0, 0, 0, 150));
 
-        // Menggambar kotak memenuhi satu layar penuh
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-        // --- GAMBAR JUDUL & TOMBOL ---
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.BOLD, 48));
         String title = "PAUSED";
@@ -56,6 +53,7 @@ public class PauseScene implements Scene {
         drawButton(g2, menuButton, "MAIN MENU", menuHover);
     }
 
+    /* Menggambar tombol individu dengan teks dan perubahan warna saat di-hover */
     private void drawButton(Graphics2D g2, Rectangle rect, String text, boolean hover) {
         g2.setColor(hover ? new Color(100, 255, 100) : Color.WHITE);
         g2.fillRoundRect(rect.x, rect.y, rect.width, rect.height, 15, 15);
@@ -72,18 +70,27 @@ public class PauseScene implements Scene {
         g2.drawString(text, tx, ty);
     }
 
+    /* Menangani event penekanan tombol mouse */
     @Override
     public void mousePressed(MouseEvent e) {
         mouseHandler.mousePressed(e);
     }
 
+    /* Menangani event pergerakan mouse */
     @Override
     public void mouseMoved(MouseEvent e) {
         mouseHandler.mouseMoved(e);
     }
 
+    /* Mendapatkan referensi area tombol resume */
     public Rectangle getResumeButton() { return resumeButton; }
+
+    /* Mendapatkan referensi area tombol menu utama */
     public Rectangle getMenuButton() { return menuButton; }
+
+    /* Mengatur status hover pada tombol resume */
     public void setResumeHover(boolean h) { this.resumeHover = h; }
+
+    /* Mengatur status hover pada tombol menu utama */
     public void setMenuHover(boolean h) { this.menuHover = h; }
 }

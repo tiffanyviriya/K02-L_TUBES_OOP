@@ -68,45 +68,45 @@ public class TileManager {
             int tileType = mapTileNum[col][row];
 
             switch (tileType) {
-                case 0: // Floor
+                case 0:
                     worldTiles[col][row] = new Tile(gp);
                     setupImage(worldTiles[col][row], "/tiles/floor_tile.png", false);
                     break;
-                case 1: // Wall
+                case 1:
                     worldTiles[col][row] = new Tile(gp);
                     setupImage(worldTiles[col][row], "/tiles/wallbirulagi.png", true);
                     break;
-                case 2: // Cutting Station
+                case 2:
                     worldTiles[col][row] = new CuttingStation(gp);
                     break;
-                case 3: // Ingredient Storage (Cucumber)
+                case 3:
                     worldTiles[col][row] = new IngredientStorage(gp, "cucumber");
                     break;
                 case 9:
-                    worldTiles[col][row] = new IngredientStorage(gp, "rice"); // Beras
+                    worldTiles[col][row] = new IngredientStorage(gp, "rice");
                     break;
                 case 10:
-                    worldTiles[col][row] = new IngredientStorage(gp, "fish"); // Ikan
+                    worldTiles[col][row] = new IngredientStorage(gp, "fish");
                     break;
                 case 11:
-                    worldTiles[col][row] = new IngredientStorage(gp, "shrimp"); // Udang
+                    worldTiles[col][row] = new IngredientStorage(gp, "shrimp");
                     break;
                 case 12:
-                    worldTiles[col][row] = new IngredientStorage(gp, "nori"); // Nori
+                    worldTiles[col][row] = new IngredientStorage(gp, "nori");
                     break;
-                case 4: // Cooking Station
+                case 4:
                     worldTiles[col][row] = new CookingStation(gp);
                     break;
-                case 5: // Serving Counter
+                case 5:
                     worldTiles[col][row] = new ServingCounter(gp);
                     break;
-                case 6: // Plate Storage
+                case 6:
                     worldTiles[col][row] = new PlateStorage(gp);
                     break;
-                case 7: // Assembly Station (Horizontal)
+                case 7:
                     worldTiles[col][row] = new AssemblyStation(gp, "horizontal");
                     break;
-                case 8: // Assembly Station (Vertical)
+                case 8:
                     worldTiles[col][row] = new AssemblyStation(gp, "vertical");
                     break;
                 case 15:
@@ -115,7 +115,7 @@ public class TileManager {
                 case 16:
                     worldTiles[col][row] = new WashingCounter(gp);
                     break;
-                case 13: // Trash Station
+                case 13:
                     worldTiles[col][row] = new TrashStation(gp);
                     break;
                 case 14:

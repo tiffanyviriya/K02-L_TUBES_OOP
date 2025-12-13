@@ -6,18 +6,15 @@ import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener {
 
-    GamePanel gp; // Tambahkan referensi ke GamePanel
+    GamePanel gp;
 
     public boolean upPressed, downPressed, leftPressed, rightPressed;
     public boolean actionPressed; // V
     public boolean interactPressed; // C
     public boolean switchPressed; // B
-
-    // Tombol Dash dan Throw
     public boolean dashPressed;   // L
     public boolean throwPressed;  // T
 
-    // [PERBAIKAN] Tambahkan Constructor ini
     public KeyHandler(GamePanel gp) {
         this.gp = gp;
     }

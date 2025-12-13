@@ -5,7 +5,7 @@ import environment.item.Item;
 import environment.item.Plate;
 import environment.item.PlateState;
 import main.util.GamePanel;
-import main.util.ItemContainer; // Import baru
+import main.util.ItemContainer;
 import environment.entity.Player;
 import environment.entity.PlayerState;
 
@@ -19,7 +19,6 @@ public class WashingStation extends Tile implements Runnable {
 
     private int myCol, myRow;
 
-    // [CUSTOM GENERICS] Menggunakan ItemContainer<Item> untuk tumpukan kotor
     private ItemContainer<Item> dirtyStack = new ItemContainer<>();
 
     private ScheduledFuture<?> washingTask;
@@ -27,6 +26,7 @@ public class WashingStation extends Tile implements Runnable {
     private volatile int currentProgress = 0;
     private final int MAX_PROGRESS = 100;
 
+    /* Konstruktor untuk inisialisasi stasiun pencucian pada posisi tertentu */
     public WashingStation(GamePanel gp, int col, int row) {
         super(gp);
         this.myCol = col;
@@ -36,20 +36,23 @@ public class WashingStation extends Tile implements Runnable {
         startWashingTask();
     }
 
+    /* Memuat gambar visual untuk stasiun pencucian */
     private void loadImage() {
         try {
             var is = getClass().getResourceAsStream("/stations/washingstations.png");
             if (is == null) is = getClass().getResourceAsStream("/tiles/floor_tile.png");
             if (is != null) image = ImageIO.read(is);
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {  }
     }
 
+    /* Memulai thread terjadwal untuk menangani logika pencucian secara periodik */
     private void startWashingTask() {
         if (gp.globalExecutor != null && !gp.globalExecutor.isShutdown()) {
             washingTask = gp.globalExecutor.scheduleAtFixedRate(this, 0, 20, TimeUnit.MILLISECONDS);
         }
     }
 
+    /* Logika loop utama proses pencucian yang dijalankan oleh thread */
     @Override
     public void run() {
         try {
@@ -73,28 +76,29 @@ public class WashingStation extends Tile implements Runnable {
                 stopWashing();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
     }
 
+    /* Memulai interaksi pencucian oleh pemain */
     private void startWashing(Entity player) {
         this.activePlayer = player;
         if (player instanceof Player) {
             ((Player) player).playerState = PlayerState.BUSY;
         }
-        System.out.println("Mulai mencuci otomatis...");
     }
 
+    /* Menghentikan proses pencucian dan mengembalikan status pemain menjadi idle */
     private void stopWashing() {
         if (activePlayer != null) {
             if (activePlayer instanceof Player) {
                 ((Player) activePlayer).playerState = PlayerState.IDLE;
             }
-            System.out.println("Berhenti mencuci.");
             this.activePlayer = null;
         }
     }
 
+    /* Memeriksa apakah pemain berada dalam jarak interaksi yang valid */
     private boolean isPlayerClose(Entity p) {
         int tileX = myCol * gp.tileSize;
         int tileY = myRow * gp.tileSize;
@@ -104,17 +108,18 @@ public class WashingStation extends Tile implements Runnable {
         return distance < (gp.tileSize * 1.5);
     }
 
+    /* Membersihkan task thread saat objek stasiun dihapus */
     public void dispose() {
         if (washingTask != null) {
             washingTask.cancel(true);
         }
     }
 
+    /* Mencoba memindahkan piring yang sudah bersih ke counter sebelah */
     private synchronized void attemptTransferPlate() {
         WashingCounter targetCounter = findNeighborCounter();
 
         if (targetCounter != null) {
-            // [CUSTOM GENERICS] Mengambil item
             Plate plate = (Plate) dirtyStack.takeItem();
 
             if (plate != null) {
@@ -122,14 +127,13 @@ public class WashingStation extends Tile implements Runnable {
                 plate.updateImage();
                 targetCounter.addCleanPlate(plate);
                 currentProgress = 0;
-                System.out.println("Piring bersih dipindahkan ke Station sebelah!");
             }
         } else {
             currentProgress = MAX_PROGRESS;
-            System.out.println("Tidak ada WashingCounter di sebelah kiri!");
         }
     }
 
+    /* Mencari objek WashingCounter yang bersebelahan dengan stasiun ini */
     private WashingCounter findNeighborCounter() {
         int targetCol = myCol - 1;
         int targetRow = myRow;
@@ -145,13 +149,12 @@ public class WashingStation extends Tile implements Runnable {
         return null;
     }
 
+    /* Menangani interaksi pemain: menaruh piring kotor atau memulai/menghentikan pencucian */
     @Override
     public void interact(Entity player) {
         if (player.inventory != null) {
-            // [CUSTOM GENERICS] Menambah item
             dirtyStack.addItem(player.inventory);
             player.inventory = null;
-            System.out.println("Piring kotor ditaruh.");
             return;
         }
 
@@ -165,6 +168,7 @@ public class WashingStation extends Tile implements Runnable {
         }
     }
 
+    /* Menggambar stasiun, tumpukan item, dan progress bar pencucian */
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
         else {
@@ -173,7 +177,6 @@ public class WashingStation extends Tile implements Runnable {
         }
 
         if (!dirtyStack.isEmpty()) {
-            // [CUSTOM GENERICS] Peek item
             Item topItem = dirtyStack.peekItem();
             if (topItem != null && topItem.image != null) {
                 g2.drawImage(topItem.image, x + 12, y + 10, gp.itemSize, gp.itemSize, null);

@@ -17,7 +17,6 @@ public class PlaySceneMouseHandler {
     public void mousePressed(MouseEvent e) {
         Point p = e.getPoint();
 
-        // Cek jika tombol Pause diklik
         if (scene.getPauseButton().contains(p)) {
             scene.gp.changeGameState(GameState.PAUSE);
         }
@@ -30,7 +29,6 @@ public class PlaySceneMouseHandler {
         Point p = e.getPoint();
 
         scene.setPauseHover(scene.getPauseButton().contains(p));
-        // [TAMBAH]
         scene.setRecipeHover(scene.getRecipeButton().contains(p));
     }
 }

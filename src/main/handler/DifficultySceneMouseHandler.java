@@ -23,7 +23,6 @@ public class DifficultySceneMouseHandler extends MouseAdapter {
         if (gp.gameState == GameState.DIFFICULTY_SELECT) {
             Point p = e.getPoint();
 
-            // Cek tombol mana yang diklik
             if (difficultyScene.getEasyButton().contains(p)) {
                 difficultyScene.startGame(DifficultyScene.LEVEL_EASY);
             } else if (difficultyScene.getMediumButton().contains(p)) {
@@ -40,8 +39,6 @@ public class DifficultySceneMouseHandler extends MouseAdapter {
             Point p = e.getPoint();
             boolean updated = false;
 
-            // Cek hover untuk setiap tombol dan update status di scene
-            // Kita menggunakan setter untuk mengubah nilai boolean di Scene
             boolean isEasy = difficultyScene.getEasyButton().contains(p);
             if (difficultyScene.isEasyHover() != isEasy) {
                 difficultyScene.setEasyHover(isEasy);
@@ -60,7 +57,6 @@ public class DifficultySceneMouseHandler extends MouseAdapter {
                 updated = true;
             }
 
-            // Hanya repaint jika ada perubahan status hover agar performa terjaga
             if (updated) {
                 gp.repaint();
             }

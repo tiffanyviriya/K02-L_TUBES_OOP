@@ -21,10 +21,10 @@ public class KitchenUtensil extends Item {
 
     private boolean isSoundPlaying = false;
 
-    // Gambar-gambar status
     private BufferedImage imgPanEmpty, imgPanShrimp, imgPanCooked, imgPanBurned;
     private BufferedImage imgPotEmpty, imgPotRice, imgPotCooked, imgPotBurned;
 
+    /* Konstruktor untuk inisialisasi peralatan dapur seperti panci atau wajan */
     public KitchenUtensil(GamePanel gp, String name) {
         super(gp);
         this.name = name;
@@ -34,41 +34,36 @@ public class KitchenUtensil extends Item {
         updateLook();
     }
 
+    /* Memuat semua aset gambar untuk berbagai kondisi peralatan masak */
     private void loadAllImages() {
         try {
-            // --- LOAD GAMBAR PAN ---
             imgPanEmpty = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan.png"));
             imgPanShrimp = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp.png"));
-            // [FIX] Load Cooked & Burned
             imgPanCooked = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp_Cooked.png"));
             imgPanBurned = ImageIO.read(getClass().getResourceAsStream("/utensils/Frying_Pan_With_Shrimp_Burned.png"));
 
-            // --- LOAD GAMBAR POT ---
             imgPotEmpty = ImageIO.read(getClass().getResourceAsStream("/utensils/Boiling_Pot.png"));
             imgPotRice = ImageIO.read(getClass().getResourceAsStream("/utensils/Boiling_Pot_With_Rice.png"));
 
-            // Load gambar tambahan Pot jika ada (gunakan fallback jika tidak ada file spesifik)
             try {
                 imgPotCooked = ImageIO.read(getClass().getResourceAsStream("/utensils/boiling_pot_boil.png"));
                 imgPotBurned = ImageIO.read(getClass().getResourceAsStream("/utensils/boiling_pot_gosong.png"));
             } catch (Exception e) {
-                // Fallback jika file tidak ditemukan
                 imgPotCooked = imgPotRice;
                 imgPotBurned = imgPotRice;
             }
 
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) { }
     }
 
-    // [FIX] Logika Update Tampilan
+    /* Memperbarui tampilan visual peralatan masak berdasarkan isinya dan status memasak */
     public void updateLook() {
         if (name.equalsIgnoreCase("Pan")) {
             if (isBurned) {
-                image = imgPanBurned; // Gambar Gosong
+                image = imgPanBurned;
             } else if (isCooked) {
-                image = imgPanCooked; // Gambar Matang
+                image = imgPanCooked;
             } else {
-                // Gambar Mentah atau Kosong
                 image = hasIngredient("shrimp") ? imgPanShrimp : imgPanEmpty;
             }
         }
@@ -78,13 +73,14 @@ public class KitchenUtensil extends Item {
             } else if (isCooked) {
                 image = imgPotCooked;
             } else if (cookingProgress > 0 && !ingredients.isEmpty()) {
-                image = imgPotCooked; // Efek mendidih (pake gambar boil)
+                image = imgPotCooked;
             } else {
                 image = hasIngredient("rice") ? imgPotRice : imgPotEmpty;
             }
         }
     }
 
+    /* Mengecek apakah bahan tertentu sudah ada di dalam peralatan masak */
     private boolean hasIngredient(String ingredientName) {
         for (Ingredient i : ingredients) {
             if (i.name.equalsIgnoreCase(ingredientName)) return true;
@@ -92,6 +88,7 @@ public class KitchenUtensil extends Item {
         return false;
     }
 
+    /* Menambahkan bahan ke dalam peralatan masak jika kompatibel */
     public boolean addIngredient(Ingredient in) {
         if (!ingredients.isEmpty() || isCooked || isBurned) {
             gp.soundM.playSE(6);
@@ -105,7 +102,6 @@ public class KitchenUtensil extends Item {
             }
         }
         else if (name.equalsIgnoreCase("Pan")) {
-            // Terima Shrimp CHOPPED
             if (in.name.equalsIgnoreCase("shrimp") && in.state == environment.food_related.IngredientState.CHOPPED) {
                 isCompatible = true;
             }
@@ -113,7 +109,6 @@ public class KitchenUtensil extends Item {
 
         if (isCompatible) {
             ingredients.add(in);
-            System.out.println("Bahan " + in.name + " masuk ke " + name);
             updateLook();
             return true;
         } else {
@@ -122,10 +117,10 @@ public class KitchenUtensil extends Item {
         }
     }
 
+    /* Menjalankan proses memasak, memperbarui progress, dan menangani status matang atau gosong */
     public void cook() {
         if (!ingredients.isEmpty()) {
 
-            // Start Sound
             if (!isSoundPlaying && !isBurned) {
                 if (name.equalsIgnoreCase("Pot")) gp.soundM.playPotSound();
                 else if (name.equalsIgnoreCase("Pan")) gp.soundM.playPanSound();
@@ -133,22 +128,20 @@ public class KitchenUtensil extends Item {
             }
 
             cookingProgress++;
-            // Update look sesekali atau saat status berubah penting
             if (cookingProgress % 60 == 0) updateLook();
 
             if (cookingProgress >= TIME_TO_BURN) {
-                if (!isBurned) { // Cek agar tidak update terus menerus
+                if (!isBurned) {
                     isBurned = true; isCooked = false;
                     stopCookingSound();
                     for(Ingredient i : ingredients) i.burn();
-                    updateLook(); // Ubah ke gambar gosong
+                    updateLook();
                 }
             } else if (cookingProgress >= TIME_TO_COOK) {
                 if (!isCooked) {
                     isCooked = true;
-                    // Note: Jangan stop suara dulu, biarkan sampai diangkat atau gosong
                     for(Ingredient i : ingredients) i.cook();
-                    updateLook(); // Ubah ke gambar matang
+                    updateLook();
                 }
             }
         } else {
@@ -156,15 +149,17 @@ public class KitchenUtensil extends Item {
         }
     }
 
+    /* Memindahkan makanan yang sudah matang dari peralatan masak ke piring */
     public ArrayList<Ingredient> serveToPlate() {
         if (isCooked && !isBurned) {
             ArrayList<Ingredient> servedFood = new ArrayList<>(ingredients);
-            reset(); // Bersihkan panci setelah disajikan
+            reset();
             return servedFood;
         }
         return null;
     }
 
+    /* Menghentikan efek suara memasak */
     public void stopCookingSound() {
         if (isSoundPlaying) {
             if (name.equalsIgnoreCase("Pot")) gp.soundM.stopPotSound();
@@ -173,23 +168,23 @@ public class KitchenUtensil extends Item {
         }
     }
 
-    // [FIX] Method Reset untuk Trash Station
+    /* Mengosongkan peralatan masak dan mengembalikan status ke awal */
     public void reset() {
         ingredients.clear();
         cookingProgress = 0;
         isCooked = false;
         isBurned = false;
         stopCookingSound();
-        updateLook(); // Kembali ke gambar kosong
+        updateLook();
     }
 
+    /* Menggambar peralatan masak dan bar progress memasak ke layar */
     @Override
     public void draw(Graphics2D g2, int x, int y) {
         int size = gp.tileSize - 16;
         int offset = (gp.tileSize - size) / 2;
         if (image != null) g2.drawImage(image, x + offset, y + offset, size, size, null);
 
-        // Progress Bar (Hanya muncul jika ada isi)
         if (!ingredients.isEmpty()) {
             int barWidth = 32; int screenX = x + offset; int screenY = y - 8;
             g2.setColor(Color.WHITE); g2.fillRect(screenX, screenY, barWidth, 5);

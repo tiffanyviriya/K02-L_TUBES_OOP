@@ -15,10 +15,11 @@ public class Ingredient extends Item implements Preparable {
 
     private BufferedImage imgRaw, imgChopped, imgCooked, imgBurned;
 
+    /* Konstruktor untuk inisialisasi bahan makanan dengan nama dan state awal */
     public Ingredient(GamePanel gp, String name) {
         super(gp);
         this.name = name;
-        this.state = IngredientState.RAW; // Default state
+        this.state = IngredientState.RAW;
 
         loadImages();
         updateImage();
@@ -26,6 +27,7 @@ public class Ingredient extends Item implements Preparable {
         solidArea = new Rectangle(0, 0, 24, 24);
     }
 
+    /* Memuat gambar bahan makanan untuk berbagai kondisi (mentah, potong, masak, gosong) */
     private void loadImages() {
         String rawPath = "/ingredients/" + name + "_raw.png";
         String choppedPath = "/ingredients/" + name + "_chopped.png";
@@ -54,12 +56,8 @@ public class Ingredient extends Item implements Preparable {
             choppedPath = "/ingredients/chopped_cucumber.png";
         }
 
-        // 3. Load Gambar dengan Error Handling (Agar tidak invisible jika gagal)
         try {
             imgRaw = loadImageSafe(rawPath);
-            if (imgRaw == null) {
-                System.out.println("CRITICAL: Gagal load gambar utama untuk " + name + " di path: " + rawPath);
-            }
 
             imgChopped = loadImageSafe(choppedPath);
             if (imgChopped == null) imgChopped = imgRaw;
@@ -71,10 +69,11 @@ public class Ingredient extends Item implements Preparable {
             if (imgBurned == null) imgBurned = imgRaw;
 
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
     }
 
+    /* Membaca file gambar dengan aman tanpa melempar exception jika tidak ditemukan */
     private BufferedImage loadImageSafe(String path) {
         try {
             if (getClass().getResource(path) != null) {
@@ -85,6 +84,7 @@ public class Ingredient extends Item implements Preparable {
         return null;
     }
 
+    /* Memperbarui tampilan gambar bahan sesuai dengan state saat ini */
     public void updateImage() {
         switch (state) {
             case RAW:
@@ -105,6 +105,7 @@ public class Ingredient extends Item implements Preparable {
         }
     }
 
+    /* Memeriksa apakah bahan dapat dipotong */
     @Override
     public boolean canBeChopped() {
 
@@ -114,6 +115,7 @@ public class Ingredient extends Item implements Preparable {
         return state == IngredientState.RAW;
     }
 
+    /* Memeriksa apakah bahan dapat dimasak */
     @Override
     public boolean canBeCooked() {
         if (name.equalsIgnoreCase("nori")
@@ -125,35 +127,34 @@ public class Ingredient extends Item implements Preparable {
         return state == IngredientState.CHOPPED || state == IngredientState.RAW;
     }
 
+    /* Memeriksa apakah bahan dapat diletakkan di piring */
     @Override
     public boolean canBePlacedOnPlate() {
         return true;
     }
 
+    /* Mengubah status bahan menjadi terpotong */
     @Override
     public void chop() {
         if (canBeChopped()) {
             state = IngredientState.CHOPPED;
             updateImage();
-            System.out.println(name + " berhasil dipotong!");
-        } else {
-            System.out.println(name + " tidak bisa dipotong!");
         }
     }
 
+    /* Mengubah status bahan menjadi matang */
     @Override
     public void cook() {
         if(canBeCooked()){
             state = IngredientState.COOKED;
             updateImage();
-            System.out.println(name + " matang!");
         }
     }
 
+    /* Mengubah status bahan menjadi gosong */
     @Override
     public void burn() {
         state = IngredientState.BURNED;
         updateImage();
-        System.out.println(name + " gosong!");
     }
 }

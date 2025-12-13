@@ -22,9 +22,8 @@ public class RecipeBookMouseHandler extends MouseAdapter {
     public void mousePressed(MouseEvent e) {
         if (gp.gameState == GameState.RECIPE_BOOK) {
             Point p = e.getPoint();
-            // Cek tombol Close
             if (scene.getCloseButton().contains(p)) {
-                gp.changeGameState(GameState.PLAYING); // Kembali main
+                gp.changeGameState(GameState.PLAYING);
             }
         }
     }

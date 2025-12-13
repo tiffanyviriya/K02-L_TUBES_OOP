@@ -117,10 +117,8 @@ public class DifficultyScene implements Scene{
             g2.drawImage(mapPreviewImage, imgX, imgY, imgW, imgH, null);
         }
 
-        // 3. Judul (Kembali Ditengah Layar)
         g2.setFont(new Font("Broadway", Font.BOLD, 40));
 
-        // Menggunakan tengah layar (gp.screenWidth / 2) sebagai titik tengah
         int screenCenterX = gp.screenWidth / 2;
 
         g2.setColor(Color.BLACK);

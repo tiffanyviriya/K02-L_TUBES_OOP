@@ -10,29 +10,28 @@ import javax.imageio.ImageIO;
 
 public class Dish extends Item {
 
-    // Dish menyimpan daftar bahan pembentuknya
     public List<Preparable> components;
 
-    // Constructor Private: Hanya bisa dipanggil oleh Builder
+    /* Konstruktor privat untuk membuat objek Dish dengan komponen spesifik */
     private Dish(GamePanel gp, String name, List<Preparable> ingredients) {
         super(gp);
         this.name = name;
         this.components = ingredients;
-        this.collision = true; // Dish bisa ditaruh di meja
+        this.collision = true;
 
         loadDishImage();
     }
 
+    /* Memuat gambar hidangan berdasarkan nama dari sumber daya */
     private void loadDishImage() {
         try {
-            // Load gambar sesuai nama Dish (misal: "Kappa Maki.png")
-            // Pastikan gambar ada di folder /res/menu/
             image = ImageIO.read(getClass().getResourceAsStream("/menu/" + name + ".png"));
         } catch (Exception e) {
-            System.out.println("Gambar Dish tidak ditemukan: " + name);
+
         }
     }
 
+    /* Menggambar hidangan pada posisi tertentu menggunakan konteks grafis */
     @Override
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) {
@@ -40,33 +39,30 @@ public class Dish extends Item {
         }
     }
 
-    // ==========================================
-    //       STATIC INNER CLASS: BUILDER
-    // ==========================================
     public static class Builder {
         private GamePanel gp;
         private List<Preparable> ingredients;
 
+        /* Konstruktor Builder untuk inisialisasi daftar bahan */
         public Builder(GamePanel gp) {
             this.gp = gp;
             this.ingredients = new ArrayList<>();
         }
 
-        // Method untuk menambah bahan satu per satu (Chaining)
+        /* Menambahkan satu bahan ke dalam daftar bahan pembentuk hidangan */
         public Builder addIngredient(Preparable p) {
             this.ingredients.add(p);
             return this;
         }
 
-        // Method untuk menambah banyak bahan sekaligus
+        /* Menambahkan daftar bahan sekaligus ke dalam pembentuk hidangan */
         public Builder addIngredients(List<Preparable> list) {
             this.ingredients.addAll(list);
             return this;
         }
 
-        // Method build() yang melakukan validasi resep secara otomatis
+        /* Membangun objek Dish jika kombinasi bahan cocok dengan resep yang ada */
         public Dish build() {
-            // 1. Siapkan list nama bahan string untuk pengecekan (misal: "fish_CHOPPED")
             ArrayList<String> ingredientNames = new ArrayList<>();
             for (Preparable p : ingredients) {
                 if (p instanceof Ingredient) {
@@ -75,35 +71,29 @@ public class Dish extends Item {
                 }
             }
 
-            // 2. Cek kecocokan dengan Resep yang ada di OrderManager
             for (Recipe recipe : gp.orderM.levelRecipes) {
                 if (isRecipeMatch(recipe, ingredientNames)) {
-                    // JIKA COCOK: Return Dish baru sesuai resep
-                    // Dish ini HANYA UNTUK VISUAL (mengubah tampilan piring)
                     return new Dish(gp, recipe.name, new ArrayList<>(ingredients));
                 }
             }
 
-            // JIKA TIDAK ADA YANG COCOK: Return null (Visual tetap piring berisi bahan)
             return null;
         }
 
-        // Logika untuk memastikan bahan di piring SAMA PERSIS dengan resep
+        /* Memeriksa apakah bahan-bahan di piring cocok dengan resep tertentu */
         private boolean isRecipeMatch(Recipe recipe, ArrayList<String> plateContents) {
-            // Jumlah bahan harus sama persis (Exact Match)
             if (recipe.requiredIngredients.size() != plateContents.size()) return false;
 
-            // Gunakan copy list agar aman saat remove
             ArrayList<String> tempPlate = new ArrayList<>(plateContents);
 
             for (String req : recipe.requiredIngredients) {
                 if (tempPlate.contains(req)) {
                     tempPlate.remove(req);
                 } else {
-                    return false; // Bahan wajib tidak ditemukan
+                    return false;
                 }
             }
-            return true; // Semua bahan cocok
+            return true;
         }
     }
 }

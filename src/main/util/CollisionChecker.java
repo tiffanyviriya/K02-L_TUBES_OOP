@@ -9,19 +9,18 @@ public class CollisionChecker {
 
     protected GamePanel gp;
 
+    /* Konstruktor untuk inisialisasi pemeriksa tabrakan dengan referensi panel game */
     public CollisionChecker(GamePanel gp) {
         this.gp = gp;
     }
 
-    // Cek tabrakan dengan Tile (Dinding/Station)
+    /* Memeriksa deteksi tabrakan antara entitas dengan tile dinding atau batas peta berdasarkan arah gerak */
     public void checkTile(Entity entity) {
-        // Hitung posisi hitbox di dunia
         int entityLeftWorldX = entity.pos.x + entity.solidArea.x;
         int entityRightWorldX = entity.pos.x + entity.solidArea.x + entity.solidArea.width;
         int entityTopWorldY = entity.pos.y + entity.solidArea.y;
         int entityBottomWorldY = entity.pos.y + entity.solidArea.y + entity.solidArea.height;
 
-        // Hitung kolom/baris grid
         int entityLeftCol = entityLeftWorldX / gp.tileSize;
         int entityRightCol = entityRightWorldX / gp.tileSize;
         int entityTopRow = entityTopWorldY / gp.tileSize;
@@ -33,7 +32,6 @@ public class CollisionChecker {
             switch(entity.direction) {
                 case "up":
                     entityTopRow = (entityTopWorldY - entity.speed) / gp.tileSize;
-                    // Cek batas map agar tidak ArrayOutOfBounds
                     if (entityTopRow >= 0 && entityLeftCol >= 0 && entityRightCol < gp.maxScreenCol) {
                         tile1 = gp.tileM.worldTiles[entityLeftCol][entityTopRow];
                         tile2 = gp.tileM.worldTiles[entityRightCol][entityTopRow];
@@ -41,7 +39,7 @@ public class CollisionChecker {
                             entity.collisionOn = true;
                         }
                     } else {
-                        entity.collisionOn = true; // Anggap luar map adalah dinding
+                        entity.collisionOn = true;
                     }
                     break;
                 case "down":
@@ -82,34 +80,28 @@ public class CollisionChecker {
                     break;
             }
         } catch (Exception e) {
-            // Fallback safety
             entity.collisionOn = true;
         }
     }
 
-    // Cek tabrakan dengan Item di lantai (untuk Pick Up)
+    /* Memeriksa apakah entitas bersentuhan dengan item yang berada di lantai untuk interaksi pengambilan */
     public Item checkItem(Entity entity) {
         Item foundItem = null;
 
-        // Loop semua item yang ada di lantai
         for (int i = 0; i < gp.itemM.itemsOnFloor.size(); i++) {
             Item target = gp.itemM.itemsOnFloor.get(i);
 
             if (target != null) {
-                // Update posisi solidArea entity ke posisi world
                 entity.solidArea.x = entity.pos.x + entity.solidArea.x;
                 entity.solidArea.y = entity.pos.y + entity.solidArea.y;
 
-                // Update posisi solidArea target item ke posisi world
                 target.solidArea.x = target.worldX + target.solidArea.x;
                 target.solidArea.y = target.worldY + target.solidArea.y;
 
-                // Cek intersection
                 if (entity.solidArea.intersects(target.solidArea)) {
                     foundItem = target;
                 }
 
-                // Reset posisi solidArea ke default (relative)
                 entity.solidArea.x = entity.solidAreaDefaultX;
                 entity.solidArea.y = entity.solidAreaDefaultY;
 
@@ -124,16 +116,13 @@ public class CollisionChecker {
         return foundItem;
     }
 
-    // Cek tabrakan dengan Player lain (Chef vs Chef)
+    /* Memeriksa deteksi tabrakan antara entitas dengan pemain lain untuk mencegah tumpang tindih */
     public void checkPlayer(Entity entity) {
-        // Ambil daftar semua player dari PlayerManager
         Player[] players = gp.playerM.getPlayers();
 
-        // Update posisi solidArea entity (yang sedang bergerak) ke world position
         entity.solidArea.x = entity.pos.x + entity.solidArea.x;
         entity.solidArea.y = entity.pos.y + entity.solidArea.y;
 
-        // Prediksi posisi entity di frame berikutnya berdasarkan arah gerak
         switch(entity.direction) {
             case "up": entity.solidArea.y -= entity.speed; break;
             case "down": entity.solidArea.y += entity.speed; break;
@@ -141,26 +130,21 @@ public class CollisionChecker {
             case "right": entity.solidArea.x += entity.speed; break;
         }
 
-        // Loop untuk mengecek tabrakan dengan player LAIN
         for (Player target : players) {
-            if (target != null && target != entity) { // Jangan cek diri sendiri
+            if (target != null && target != entity) {
 
-                // Update posisi solidArea target (player lain) ke world position
                 target.solidArea.x = target.pos.x + target.solidArea.x;
                 target.solidArea.y = target.pos.y + target.solidArea.y;
 
-                // Cek intersection
                 if (entity.solidArea.intersects(target.solidArea)) {
                     entity.collisionOn = true;
                 }
 
-                // Reset posisi solidArea target ke default
                 target.solidArea.x = target.solidAreaDefaultX;
                 target.solidArea.y = target.solidAreaDefaultY;
             }
         }
 
-        // Reset posisi solidArea entity ke default
         entity.solidArea.x = entity.solidAreaDefaultX;
         entity.solidArea.y = entity.solidAreaDefaultY;
     }

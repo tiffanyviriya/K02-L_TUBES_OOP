@@ -20,6 +20,7 @@ public class ResultScene implements Scene{
     private final int cardWidth;
     private final int cardHeight;
 
+    /* Konstruktor untuk inisialisasi scene hasil, memuat gambar latar, dan menyiapkan handler input */
     public ResultScene(GamePanel gp) {
         this.gp = gp;
         this.cardWidth = gp.screenWidth;
@@ -38,32 +39,33 @@ public class ResultScene implements Scene{
         gp.addMouseMotionListener(mouseHandler);
     }
 
-    // --- LOGIKA UTAMA: EVALUASI (Tanpa File Save) ---
+    /* Memproses hasil permainan, mengevaluasi skor terhadap target, dan menyimpan status kelulusan level */
     public void processResult() {
         String difficulty = gp.currentDifficulty;
         int score = gp.orderM.score;
 
-        // Ambil target dari ScoreManager
         int target = gp.scoreM.getTargetScore(difficulty);
 
         boolean isPass = score >= target;
 
-        // Jika Lulus, tandai level ini sebagai CLEARED di memori
         if (isPass) {
             gp.scoreM.setLevelCleared(difficulty);
         }
-
-        System.out.println("Result: " + difficulty + " | Score: " + score + " | Target: " + target + " | Pass: " + isPass);
     }
 
+    /* Mendapatkan referensi area tombol menu utama */
     public Rectangle getMenuButton() { return menuButton; }
+
+    /* Mengatur status hover pada tombol menu utama */
     public void setMenuHover(boolean hover) { this.menuHover = hover; }
 
+    /* Memperbarui logika scene setiap frame (tidak digunakan di scene ini) */
     @Override
     public void update() {
 
     }
 
+    /* Menggambar tampilan hasil akhir termasuk latar belakang, skor, status kelulusan, dan tombol menu */
     public void draw(Graphics2D g2) {
         if (backgroundImage != null) {
             g2.drawImage(backgroundImage, 0, 0, cardWidth, cardHeight, null);
@@ -78,7 +80,6 @@ public class ResultScene implements Scene{
         int score = gp.orderM.score;
         String difficulty = (gp.currentDifficulty != null) ? gp.currentDifficulty : "EASY";
 
-        // Ambil target skor
         int targetScore = gp.scoreM.getTargetScore(difficulty);
         boolean isPass = score >= targetScore;
 
@@ -86,14 +87,12 @@ public class ResultScene implements Scene{
         int centerX = gp.screenWidth / 2;
         int startY = 150;
 
-        // STATUS (PASS / FAIL)
         g2.setFont(new Font("Arial", Font.BOLD, 60));
         String titleText = isPass ? "STAGE CLEARED!" : "STAGE FAILED";
         Color titleColor = isPass ? Color.GREEN : Color.RED;
         g2.setColor(titleColor);
         drawCenteredText(g2, titleText, startY, centerX);
 
-        // Statistik
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.PLAIN, 30));
 
@@ -103,38 +102,39 @@ public class ResultScene implements Scene{
         startY += 50;
         drawCenteredText(g2, "Your Score: " + score, startY, centerX);
 
-        // Tampilkan Target Score sebagai referensi utama (bukan High Score)
         startY += 50;
         g2.setColor(Color.YELLOW);
         drawCenteredText(g2, "Target to Pass: " + targetScore, startY, centerX);
 
-        // Pesan Evaluasi
         startY += 80;
         g2.setFont(new Font("Arial", Font.ITALIC, 25));
         g2.setColor(Color.LIGHT_GRAY);
         String msg = isPass ? "Kerja Bagus! Menu berikutnya menanti." : "Skor belum mencukupi target.";
         drawCenteredText(g2, msg, startY, centerX);
 
-        // Tombol Menu
         drawButton(g2, menuButton, "MAIN MENU", menuHover);
     }
 
+    /* Menangani event penekanan tombol mouse */
     @Override
     public void mousePressed(MouseEvent e) {
         mouseHandler.mousePressed(e);
     }
 
+    /* Menangani event pergerakan mouse */
     @Override
     public void mouseMoved(MouseEvent e) {
         mouseHandler.mouseMoved(e);
     }
 
+    /* Menggambar teks dengan posisi rata tengah secara horizontal */
     private void drawCenteredText(Graphics2D g2, String text, int y, int centerX) {
         FontMetrics fm = g2.getFontMetrics();
         int x = centerX - fm.stringWidth(text) / 2;
         g2.drawString(text, x, y);
     }
 
+    /* Menggambar tombol dengan teks dan efek visual hover */
     private void drawButton(Graphics2D g2, Rectangle rect, String text, boolean hover) {
         g2.setColor(hover ? new Color(100, 255, 100) : new Color(200, 200, 200));
         g2.fillRoundRect(rect.x, rect.y, rect.width, rect.height, 15, 15);
@@ -149,6 +149,4 @@ public class ResultScene implements Scene{
         int y = rect.y + (rect.height + fm.getAscent()) / 2 - 5;
         g2.drawString(text, x, y);
     }
-
-
 }

@@ -15,12 +15,14 @@ public class AssemblyStation extends Tile {
 
     public Item itemOnTop = null;
 
+    /* Konstruktor untuk inisialisasi meja perakitan berdasarkan tipe orientasi */
     public AssemblyStation(GamePanel gp, String type) {
         super(gp);
         this.collision = true;
         loadStationImage(type);
     }
 
+    /* Memuat gambar visual meja perakitan sesuai tipe (vertikal/horizontal) */
     private void loadStationImage(String type) {
         String path = "";
         try {
@@ -31,36 +33,29 @@ public class AssemblyStation extends Tile {
             }
             image = ImageIO.read(getClass().getResourceAsStream(path));
         } catch (Exception e) {
-            e.printStackTrace();
+
         }
     }
 
+    /* Menangani interaksi pemain: menaruh item, menggabungkan bahan, atau memindahkan makanan antar wadah */
     @Override
     public void interact(Entity player) {
-        // KASUS 1: Ada Item di atas Meja
         if (itemOnTop != null) {
 
-            // --- LOGIKA BARU: Tuang Panci ke Piring di Meja ---
             if (itemOnTop instanceof Plate && player.inventory instanceof KitchenUtensil) {
                 Plate plate = (Plate) itemOnTop;
                 KitchenUtensil utensil = (KitchenUtensil) player.inventory;
 
-                // Coba sajikan isi panci ke piring
                 ArrayList<Ingredient> food = utensil.serveToPlate();
 
                 if (food != null) {
                     for (Ingredient i : food) {
                         plate.addItem(i);
                     }
-                    System.out.println("Plating: Makanan dari " + utensil.name + " dituang ke Piring di meja.");
-                } else {
-                    System.out.println("Gagal: Makanan belum matang atau gosong.");
                 }
-                return; // Selesai interaksi
+                return;
             }
-            // --------------------------------------------------
 
-            // Interaksi Panci di Meja (Masukkan bahan)
             if (itemOnTop instanceof KitchenUtensil) {
                 KitchenUtensil utensil = (KitchenUtensil) itemOnTop;
 
@@ -83,18 +78,15 @@ public class AssemblyStation extends Tile {
                     itemOnTop = null;
                 }
             }
-            // Interaksi Piring di Meja (Tambahkan bahan dari tangan)
             else if (itemOnTop instanceof Plate && player.inventory instanceof Ingredient) {
                 ((Plate) itemOnTop).addItem((Ingredient) player.inventory);
                 player.inventory = null;
             }
-            // Ambil Item (Jika tangan kosong)
             else if (player.inventory == null) {
                 player.inventory = itemOnTop;
                 itemOnTop = null;
             }
         }
-        // KASUS 2: Meja Kosong -> Taruh Item
         else {
             if (player.inventory != null) {
                 itemOnTop = player.inventory;
@@ -103,6 +95,7 @@ public class AssemblyStation extends Tile {
         }
     }
 
+    /* Menggambar meja perakitan dan item yang ada di atasnya */
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) {
             g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);

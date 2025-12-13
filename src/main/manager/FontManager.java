@@ -7,14 +7,8 @@ import java.io.InputStream;
 
 public class FontManager {
 
-    // Menyimpan font dasar agar tidak perlu load dari file berulang kali (Caching)
     private static Font baseFont;
 
-    /**
-     * Mengambil font pixel kustom dengan ukuran tertentu.
-     * @param size Ukuran font yang diinginkan (float).
-     * @return Font object (ByteBounce atau Monospaced jika gagal).
-     */
     public static Font getPixelFont(float size) {
         if (baseFont == null) {
             loadFont();

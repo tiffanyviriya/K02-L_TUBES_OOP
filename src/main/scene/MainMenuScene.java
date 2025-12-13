@@ -11,54 +11,49 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
+/* Menangani tampilan, logika, dan interaksi pada menu utama permainan */
 public class MainMenuScene implements Scene {
 
     public GamePanel gp;
     public MainMenuSceneMouseHandler mouseHandler;
 
-    // UI Elements
     private Rectangle playButton;
-    private Rectangle tutorialButton; // Tombol baru
+    private Rectangle tutorialButton;
     private Rectangle exitButton;
 
-    // State Visual
     public boolean playHover = false;
-    public boolean tutorialHover = false; // State baru
+    public boolean tutorialHover = false;
     public boolean exitHover = false;
 
-    // Resources
     private BufferedImage backgroundImage;
     private BufferedImage buttonImage;
-    private Font pixelFont; // Masih disimpan di sini untuk referensi lokal scene ini
+    private Font pixelFont;
 
+    /* Menginisialisasi scene, posisi tombol, dan memuat resource yang diperlukan */
     public MainMenuScene(GamePanel gp) {
         this.gp = gp;
         this.mouseHandler = new MainMenuSceneMouseHandler(this);
 
-        // 1. Setup Posisi Tombol (3 Tombol, disentralisasi)
         int buttonWidth = 200;
         int buttonHeight = 60;
         int spacing = 40;
 
-        // Total tinggi 3 tombol + 2 spasi = (3*60) + (2*40) = 260
         int totalHeight = (buttonHeight * 3) + (spacing * 2);
 
         int buttonX = (gp.screenWidth / 2) - (buttonWidth / 2);
 
-        // Posisi Y awal (Centering 260px di layar 576px)
         int startY = (gp.screenHeight / 2) - (totalHeight / 2);
 
         playButton = new Rectangle(buttonX, startY, buttonWidth, buttonHeight);
-        tutorialButton = new Rectangle(buttonX, startY + buttonHeight + spacing, buttonWidth, buttonHeight); // Posisi Tombol Tutorial
-        exitButton = new Rectangle(buttonX, startY + (buttonHeight + spacing) * 2, buttonWidth, buttonHeight); // Posisi Tombol Exit
+        tutorialButton = new Rectangle(buttonX, startY + buttonHeight + spacing, buttonWidth, buttonHeight);
+        exitButton = new Rectangle(buttonX, startY + (buttonHeight + spacing) * 2, buttonWidth, buttonHeight);
 
-        // 2. Load Resources
         loadResources();
     }
 
+    /* Memuat gambar background, tombol, dan font dari resource */
     private void loadResources() {
         try {
-            // Load Gambar (Tetap di sini karena spesifik untuk scene ini)
             InputStream bgStream = getClass().getResourceAsStream("/ui/nimonscooked.png");
             InputStream btnStream = getClass().getResourceAsStream("/ui/buttonUI.png");
 
@@ -67,23 +62,19 @@ public class MainMenuScene implements Scene {
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error loading image resources.");
         }
 
-        // --- LOAD FONT VIA FONT MANAGER ---
-        // Kode menjadi jauh lebih bersih.
-        // Anda bisa memanggil ini di scene lain dengan ukuran berbeda jika mau.
         pixelFont = FontManager.getPixelFont(36f);
     }
 
+    /* Memperbarui logika scene setiap frame (saat ini tidak ada logika animasi khusus) */
     @Override
     public void update() {
-        // Logika animasi menu
     }
 
+    /* Menggambar elemen visual seperti background dan tombol ke layar */
     @Override
     public void draw(Graphics2D g2) {
-        // 1. Gambar Background
         if (backgroundImage != null) {
             g2.drawImage(backgroundImage, 0, 0, gp.screenWidth, gp.screenHeight, null);
         } else {
@@ -91,24 +82,25 @@ public class MainMenuScene implements Scene {
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
         }
 
-        // 2. Gambar Tombol
         drawButton(g2, playButton, "PLAY", playHover);
-        drawButton(g2, tutorialButton, "TUTORIAL", tutorialHover); // Draw tombol tutorial
+        drawButton(g2, tutorialButton, "TUTORIAL", tutorialHover);
         drawButton(g2, exitButton, "EXIT", exitHover);
     }
 
+    /* Meneruskan event klik mouse ke handler */
     @Override
     public void mousePressed(MouseEvent e) {
         mouseHandler.mousePressed(e);
     }
 
+    /* Meneruskan event pergerakan mouse ke handler */
     @Override
     public void mouseMoved(MouseEvent e) {
         mouseHandler.mouseMoved(e);
     }
 
+    /* Menggambar tombol dengan background, teks, dan efek hover */
     private void drawButton(Graphics2D g2, Rectangle rect, String text, boolean hover) {
-        // Gambar Tombol
         if (buttonImage != null) {
             g2.drawImage(buttonImage, rect.x, rect.y, rect.width, rect.height, null);
         } else {
@@ -116,24 +108,20 @@ public class MainMenuScene implements Scene {
             g2.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
 
-        // Overlay Gelap saat Hover
         if (hover) {
             g2.setColor(new Color(0, 0, 0, 80));
             g2.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
 
-        // Styling Font
-        g2.setFont(pixelFont); // Menggunakan font yang didapat dari FontManager
+        g2.setFont(pixelFont);
 
         FontMetrics fm = g2.getFontMetrics();
         int textX = rect.x + (rect.width - fm.stringWidth(text)) / 2;
         int textY = rect.y + (rect.height - fm.getHeight()) / 2 + fm.getAscent();
 
-        // Shadow Effect
         g2.setColor(Color.BLACK);
         g2.drawString(text, textX + 3, textY + 3);
 
-        // Main Text Color
         if (hover) {
             g2.setColor(Color.YELLOW);
         } else {
@@ -142,10 +130,21 @@ public class MainMenuScene implements Scene {
         g2.drawString(text, textX, textY);
     }
 
+    /* Mengambil objek rectangle tombol play */
     public Rectangle getPlayButton() { return playButton; }
-    public Rectangle getTutorialButton() { return tutorialButton; } // Getter baru
+
+    /* Mengambil objek rectangle tombol tutorial */
+    public Rectangle getTutorialButton() { return tutorialButton; }
+
+    /* Mengambil objek rectangle tombol exit */
     public Rectangle getExitButton() { return exitButton; }
+
+    /* Mengatur status hover untuk tombol play */
     public void setPlayHover(boolean hover) { this.playHover = hover; }
-    public void setTutorialHover(boolean hover) { this.tutorialHover = hover; } // Setter baru
+
+    /* Mengatur status hover untuk tombol tutorial */
+    public void setTutorialHover(boolean hover) { this.tutorialHover = hover; }
+
+    /* Mengatur status hover untuk tombol exit */
     public void setExitHover(boolean hover) { this.exitHover = hover; }
 }

@@ -7,59 +7,57 @@ import main.util.GamePanel;
 import java.awt.*;
 import java.util.ArrayList;
 
+/* Manajer untuk mengontrol entitas pemain, pergantian karakter, dan logika pembaruan */
 public class PlayerManager {
 
     GamePanel gp;
     KeyHandler keyH;
 
-    // ArrayList Player (Public agar bisa diakses fitur Lempar di Player.java)
     public ArrayList<Player> players = new ArrayList<>();
 
     public int activePlayerIndex = 0;
 
+    /* Menginisialisasi manajer dan mengatur pemain awal */
     public PlayerManager(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyH = keyH;
         setupPlayers();
     }
 
+    /* Mengatur ulang daftar pemain dan menempatkan mereka di posisi awal */
     public void setupPlayers() {
         players.clear();
 
-        // [UBAH KOORDINAT DI SINI]
-        // Ganti 10,10 menjadi posisi yang aman (misal 4,4 atau 5,5)
-        // Chef 1 di (5, 5)
         players.add(new Player(gp, keyH, 5 * gp.tileSize, 5 * gp.tileSize));
 
-        // Chef 2 di (6, 5) - Sebelahnya
         players.add(new Player(gp, keyH, 6 * gp.tileSize, 5 * gp.tileSize));
 
         activePlayerIndex = 0;
     }
 
-    // [FIX 1] Method reset() dipanggil oleh GamePanel saat restart/ganti level
+    /* Mengatur ulang status pemain saat level dimulai ulang */
     public void reset() {
         setupPlayers();
     }
 
-    // [FIX 2] Method getPlayers() dipanggil oleh CollisionChecker
-    // Mengembalikan Array karena CollisionChecker mengharapkan Player[]
+    /* Mengambil daftar semua pemain dalam bentuk array */
     public Player[] getPlayers() {
         return players.toArray(new Player[0]);
     }
 
+    /* Memperbarui logika untuk pemain yang sedang aktif */
     public void update() {
         if (getActivePlayer() != null) {
             getActivePlayer().update();
         }
     }
 
+    /* Menggambar semua pemain dan indikator panah pada pemain aktif */
     public void draw(Graphics2D g2) {
         for (Player p : players) {
             p.draw(g2);
         }
 
-        // Gambar panah di atas player aktif
         Player active = getActivePlayer();
         if (active != null) {
             int arrowX = active.pos.x + 12;
@@ -72,6 +70,7 @@ public class PlayerManager {
         }
     }
 
+    /* Mengganti kontrol ke pemain berikutnya dalam daftar */
     public void switchPlayer() {
         if (players.isEmpty()) return;
 
@@ -79,9 +78,9 @@ public class PlayerManager {
         if (activePlayerIndex >= players.size()) {
             activePlayerIndex = 0;
         }
-        System.out.println("Switched to Chef " + (activePlayerIndex + 1));
     }
 
+    /* Mengembalikan referensi ke pemain yang sedang dikendalikan */
     public Player getActivePlayer() {
         if (players.isEmpty()) return null;
         return players.get(activePlayerIndex);

@@ -19,6 +19,7 @@ public class IngredientStorage extends Tile {
 
     public Item itemOnTop = null;
 
+    /* Konstruktor untuk inisialisasi penyimpanan bahan dengan nama bahan spesifik */
     public IngredientStorage(GamePanel gp, String ingredientName) {
         super(gp);
         this.gp = gp;
@@ -29,6 +30,7 @@ public class IngredientStorage extends Tile {
         loadStorageImage();
     }
 
+    /* Memuat gambar visual untuk penyimpanan bahan berdasarkan namanya */
     private void loadStorageImage() {
         String specificPath = "/stations/ingredient-storage-" + ingredientName + ".png";
 
@@ -38,18 +40,17 @@ public class IngredientStorage extends Tile {
             try {
                 image = ImageIO.read(getClass().getResourceAsStream("/stations/storage-sementara.png"));
             } catch (Exception ex) {
-                ex.printStackTrace();
+
             }
         }
     }
 
+    /* Menangani interaksi pemain mengambil bahan, menaruh item, atau memproses item di atas meja */
     @Override
     public void interact(Entity player) {
 
-        // KASUS 1: Ada Item di atas Storage
         if (itemOnTop != null) {
 
-            // --- LOGIKA BARU: Tuang Panci ke Piring di Meja ---
             if (itemOnTop instanceof Plate && player.inventory instanceof KitchenUtensil) {
                 Plate plate = (Plate) itemOnTop;
                 KitchenUtensil utensil = (KitchenUtensil) player.inventory;
@@ -60,15 +61,10 @@ public class IngredientStorage extends Tile {
                     for (Ingredient i : food) {
                         plate.addItem(i);
                     }
-                    System.out.println("Plating: Makanan dari " + utensil.name + " dituang ke Piring di Storage.");
-                } else {
-                    System.out.println("Gagal: Makanan belum matang atau gosong.");
                 }
                 return;
             }
-            // --------------------------------------------------
 
-            // A. Player bawa KitchenUtensil (Panci/Wajan)
             if (player.inventory instanceof KitchenUtensil) {
                 KitchenUtensil utensil = (KitchenUtensil) player.inventory;
 
@@ -81,7 +77,6 @@ public class IngredientStorage extends Tile {
                 }
             }
 
-            // B. Player bawa Piring (Plate)
             else if (player.inventory instanceof Plate) {
                 Plate plate = (Plate) player.inventory;
                 if (itemOnTop instanceof Ingredient) {
@@ -90,37 +85,30 @@ public class IngredientStorage extends Tile {
                 }
             }
 
-            // C. Player Tangan Kosong
             else if (player.inventory == null) {
                 player.inventory = itemOnTop;
                 itemOnTop = null;
-                System.out.println("Player mengambil " + player.inventory.name + " dari atas storage.");
             }
 
-            // D. Player bawa Ingredient -> Gabung ke Piring di Meja
             else if (player.inventory instanceof Ingredient && itemOnTop instanceof Plate) {
                 ((Plate) itemOnTop).addItem((Ingredient) player.inventory);
                 player.inventory = null;
             }
         }
 
-        // KASUS 2: Storage Kosong (sebagai tempat spawn)
         else {
-            // A. Player bawa Item -> Taruh item di atas Storage
             if (player.inventory != null) {
                 itemOnTop = player.inventory;
                 player.inventory = null;
-                System.out.println("Player menaruh " + itemOnTop.name + " di atas storage.");
             }
 
-            // B. Player Tangan Kosong -> Ambil Bahan Baru
             else {
                 player.inventory = new Ingredient(gp, ingredientName);
-                System.out.println("Player mengambil " + ingredientName + " baru.");
             }
         }
     }
 
+    /* Menggambar penyimpanan bahan dan item yang ada di atasnya */
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) {
             g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);

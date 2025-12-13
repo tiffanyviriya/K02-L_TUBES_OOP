@@ -13,7 +13,6 @@ public class TutorialSceneMouseHandler extends MouseAdapter {
 
     public TutorialSceneMouseHandler(TutorialScene scene) {
         this.scene = scene;
-        // Tambahkan listener ke GamePanel
         scene.gp.addMouseListener(this);
         scene.gp.addMouseMotionListener(this);
     }
@@ -24,7 +23,6 @@ public class TutorialSceneMouseHandler extends MouseAdapter {
             Point p = e.getPoint();
 
             if (scene.getBackButton().contains(p)) {
-                // Kembali ke Main Menu
                 scene.gp.gameState = GameState.MAINMENU;
                 scene.gp.repaint();
                 System.out.println("Kembali ke Main Menu.");
