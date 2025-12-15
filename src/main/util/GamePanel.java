@@ -4,6 +4,7 @@ import main.handler.KeyHandler;
 import main.manager.*;
 import main.scene.*;
 import tile.TileManager;
+import net.NetworkClient; // Import Net
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,6 +33,11 @@ public class GamePanel extends JPanel implements Runnable {
 
     public ScoreManager scoreM = new ScoreManager();
 
+    // --- NETWORK & BUFFER ---
+    public NetworkClient netClient;
+    public InputBuffer remoteInputBuffer = new InputBuffer();
+    // ------------------------
+
     // Scene objects
     public PlayScene playScene = new PlayScene(this);
     public MainMenuScene mainMenuScene = new MainMenuScene(this);
@@ -40,6 +46,7 @@ public class GamePanel extends JPanel implements Runnable {
     public PauseScene pauseScene = new PauseScene(this);
     public TutorialScene tutorialScene = new TutorialScene(this);
     public RecipeBookScene recipeBookScene;
+    public LobbyScene lobbyScene; // Tambah Lobby
 
     Thread gameThread;
     public ScheduledExecutorService globalExecutor = Executors.newScheduledThreadPool(4);
@@ -65,6 +72,10 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
 
+        // Init Network & Lobby
+        netClient = new NetworkClient(this);
+        lobbyScene = new LobbyScene(this);
+
         recipeBookScene = new RecipeBookScene(this);
 
         MouseAdapter globalMouseHandler = new MouseAdapter() {
@@ -76,6 +87,7 @@ public class GamePanel extends JPanel implements Runnable {
                 else if (gameState == GameState.DIFFICULTY_SELECT) difficultyScene.mousePressed(e);
                 else if (gameState == GameState.RESULT) resultScene.mousePressed(e);
                 else if (gameState == GameState.RECIPE_BOOK) recipeBookScene.mousePressed(e);
+                // Lobby tidak perlu mouse
             }
 
             @Override
@@ -96,7 +108,6 @@ public class GamePanel extends JPanel implements Runnable {
         changeGameState(GameState.MAINMENU);
     }
 
-    // --- METHOD RESET SENTRAL ---
     public void resetGame() {
         System.out.println("Resetting Game...");
         orderM.reset();
@@ -104,16 +115,11 @@ public class GamePanel extends JPanel implements Runnable {
         playerM.reset();
         tileM.reset();
         uiTimer.resetTime(0);
+        remoteInputBuffer.reset(); // Reset buffer input juga
     }
 
     public void changeGameState(GameState newState) {
-
-        // [PERBAIKAN KRUSIAL]
-        // Cegah fungsi ini dijalankan berulang-ulang jika state sudah sama.
-        // Ini mencegah suara dimainkan 60x per detik (looping error).
-        if (this.gameState == newState) {
-            return;
-        }
+        if (this.gameState == newState) return;
 
         this.gameState = newState;
 
@@ -122,38 +128,30 @@ public class GamePanel extends JPanel implements Runnable {
                 soundM.stopAmbience();
                 soundM.playMusic(0);
                 break;
-
             case DIFFICULTY_SELECT:
-                if (!soundM.isMusicPlaying()) {
-                    soundM.playMusic(0);
-                }
+                if (!soundM.isMusicPlaying()) soundM.playMusic(0);
+                break;
+
+            case LOBBY: // Stop lagu menu saat masuk lobby (opsional)
                 break;
 
             case PLAYING:
                 soundM.stopMusic();
                 soundM.playAmbience(5);
                 break;
-
             case PAUSE:
                 break;
-
             case RESULT:
-                // Matikan semua suara background
                 soundM.stopMusic();
-                soundM.stopAmbience(); // Pastikan index 5 ada di Sound.java
+                soundM.stopAmbience();
                 soundM.stopAllCookingSounds();
                 soundM.stopSELoop();
-
-                // Mainkan suara Menang/Kalah SEKALI SAJA
                 if (scoreM.isLevelCleared(currentDifficulty)) {
-                    System.out.println("WIN!");
                     soundM.playSE(8);
                 } else {
-                    System.out.println("LOSE!");
                     soundM.playSE(7);
                 }
                 break;
-
             case RECIPE_BOOK:
                 break;
         }
@@ -177,17 +175,11 @@ public class GamePanel extends JPanel implements Runnable {
 
             update(deltaTime);
 
-            // --- CEK GAME OVER ---
             if (gameState == GameState.PLAYING) {
-                // 1. Cek Nyawa Habis (dari OrderManager)
                 if (orderM.lives <= 0) {
-                    System.out.println("GAME OVER! Nyawa habis.");
                     changeGameState(GameState.RESULT);
                 }
-
-                // 2. Cek Waktu Habis (dari UITimer)
                 if (uiTimer.isTimeUp()) {
-                    System.out.println("GAME OVER! Waktu habis.");
                     changeGameState(GameState.RESULT);
                 }
             }
@@ -213,8 +205,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-
-
     public void update(double deltaTime) {
         if (gameState == GameState.MAINMENU) {
             mainMenuScene.update();
@@ -229,8 +219,10 @@ public class GamePanel extends JPanel implements Runnable {
         else if (gameState == GameState.RECIPE_BOOK) {
             recipeBookScene.update();
         }
+        else if (gameState == GameState.LOBBY) { // Update Lobby
+            lobbyScene.update();
+        }
     }
-
 
     @Override
     public void paintComponent(Graphics g) {
@@ -250,10 +242,11 @@ public class GamePanel extends JPanel implements Runnable {
             resultScene.draw(g2);
         } else if (gameState == GameState.TUTORIAL) {
             tutorialScene.draw(g2);
-        }
-        else if (gameState == GameState.RECIPE_BOOK) {
+        } else if (gameState == GameState.RECIPE_BOOK) {
             playScene.draw(g2);
             recipeBookScene.draw(g2);
+        } else if (gameState == GameState.LOBBY) { // Draw Lobby
+            lobbyScene.draw(g2);
         }
         g2.dispose();
     }

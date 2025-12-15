@@ -31,7 +31,6 @@ public class DifficultyScene implements Scene{
 
     private final String titleText = "PILIH TINGKAT KESULITAN";
     private final int titleYPosition = 48;
-
     private final int buttonWidth = 200;
     private final int buttonHeight = 60;
     private final int buttonSpacing = 115;
@@ -39,15 +38,12 @@ public class DifficultyScene implements Scene{
 
     public DifficultyScene(GamePanel gp) {
         this.gp = gp;
-
         try {
             backgroundImage = ImageIO.read(getClass().getResourceAsStream("/ui/difficultyscene.png"));
             mapPreviewImage = ImageIO.read(getClass().getResourceAsStream("/ui/mappreviewplaceholder.png"));
         } catch (IOException e) {
             System.err.println("Gagal memuat gambar untuk Difficulty Scene.");
-        } catch (IllegalArgumentException e) {
-            System.err.println("Gambar tidak ditemukan (cek path folder /ui/).");
-        }
+        } catch (Exception e) {} // Fallback umum
 
         int totalHeight = (buttonHeight * 3) + (buttonSpacing * 2);
         int startY = gp.screenHeight / 2 - totalHeight / 2 + (titleYPosition / 2);
@@ -60,32 +56,30 @@ public class DifficultyScene implements Scene{
     }
 
     public void startGame(String difficulty) {
-        // [MODIFIKASI] Reset game SEBELUM memulai, agar bersih dari sisa sesi sebelumnya
         gp.resetGame();
-
         gp.currentDifficulty = difficulty;
 
         int timeLimitSeconds = 0;
         switch (difficulty) {
-            case LEVEL_EASY:
-                timeLimitSeconds = 120;
-                break;
-            case LEVEL_MEDIUM:
-                timeLimitSeconds = 90;
-                break;
-            case LEVEL_HARD:
-                timeLimitSeconds = 60;
-                break;
+            case LEVEL_EASY: timeLimitSeconds = 120; break;
+            case LEVEL_MEDIUM: timeLimitSeconds = 90; break;
+            case LEVEL_HARD: timeLimitSeconds = 60; break;
         }
 
-        System.out.println("Start Level: " + difficulty + " | Target: " + gp.scoreM.getTargetScore(difficulty));
-
         gp.uiTimer.resetTime(timeLimitSeconds);
-        gp.changeGameState(GameState.PLAYING);
+
+        // --- MODIFIKASI UNTUK MULTIPLAYER ---
+        // Alih-alih langsung PLAYING, kita masuk ke LOBBY dulu
+        // dan melakukan koneksi ke server.
+
+        System.out.println("Connecting to server...");
+        gp.netClient.connect();
+
+        gp.changeGameState(GameState.LOBBY);
         gp.repaint();
     }
 
-    // Getters Setters
+    // Getters Setters (Sama seperti sebelumnya)
     public Rectangle getEasyButton() { return easyButton; }
     public Rectangle getMediumButton() { return mediumButton; }
     public Rectangle getHardButton() { return hardButton; }

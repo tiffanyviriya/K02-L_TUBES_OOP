@@ -1,6 +1,7 @@
 package main.handler;
 
-import main.util.GamePanel; // Pastikan import ini ada
+import main.util.GamePanel;
+import main.util.GameState; // Import
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -15,13 +16,15 @@ public class KeyHandler implements KeyListener {
     public boolean dashPressed;   // L
     public boolean throwPressed;  // T
 
+    // Tambah Key P untuk Start Game di Lobby
+    public boolean pPressed;
+
     public KeyHandler(GamePanel gp) {
         this.gp = gp;
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {
-    }
+    public void keyTyped(KeyEvent e) {}
 
     @Override
     public void keyPressed(KeyEvent e) {
@@ -38,6 +41,14 @@ public class KeyHandler implements KeyListener {
 
         if (code == KeyEvent.VK_L) dashPressed = true;
         if (code == KeyEvent.VK_T) throwPressed = true;
+
+        // Trigger start game di Lobby
+        if (code == KeyEvent.VK_P) {
+            pPressed = true;
+            if (gp.gameState == GameState.LOBBY) {
+                gp.lobbyScene.tryStartGame();
+            }
+        }
     }
 
     @Override
@@ -55,5 +66,7 @@ public class KeyHandler implements KeyListener {
 
         if (code == KeyEvent.VK_L) dashPressed = false;
         if (code == KeyEvent.VK_T) throwPressed = false;
+
+        if (code == KeyEvent.VK_P) pPressed = false;
     }
 }
