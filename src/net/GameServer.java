@@ -88,7 +88,7 @@ public class GameServer {
                         sendMessage("LEAVE_ACK");
                         resetLobby();
                         break;
-                    } else if (input.equals("START_GAME_SIGNAL")) {
+                    } else if (input.equals("START_GAME")) {
                         gameStarted = true;
                         broadcast("START_GAME");
                     } else {
