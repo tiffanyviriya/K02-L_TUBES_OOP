@@ -15,8 +15,6 @@ public class KeyHandler implements KeyListener {
     public boolean switchPressed; // B
     public boolean dashPressed;   // L
     public boolean throwPressed;  // T
-
-    // Tambah Key P untuk Start Game di Lobby
     public boolean pPressed;
 
     public KeyHandler(GamePanel gp) {
@@ -45,9 +43,6 @@ public class KeyHandler implements KeyListener {
         // Trigger start game di Lobby
         if (code == KeyEvent.VK_P) {
             pPressed = true;
-            if (gp.gameState == GameState.LOBBY) {
-                gp.lobbyScene.tryStartGame();
-            }
         }
     }
 

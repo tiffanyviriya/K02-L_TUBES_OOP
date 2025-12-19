@@ -23,8 +23,10 @@ public class GameServer {
             // Thread khusus untuk mengupdate state server (seperti Order)
             new Thread(() -> {
                 while (true) {
+//                        System.out.println("Masuk1");
                     if (gameStarted) {
                         orderManager.update();
+                        System.out.println("Masuk2");
                     }
                     try { Thread.sleep(100); } catch (InterruptedException e) {}
                 }
@@ -32,14 +34,15 @@ public class GameServer {
 
             while (true) {
                 Socket socket = serverSocket.accept();
+                System.out.println("Masuk");
                 if (connectedPlayers < 2) {
-                    connectedPlayers++;
                     ClientHandler handler = new ClientHandler(socket, connectedPlayers);
+                    connectedPlayers++;
                     handlers.add(handler);
                     new Thread(handler).start();
                     System.out.println("Player " + connectedPlayers + " connected.");
                 } else {
-                    socket.close(); // Tolak jika sudah penuh
+                    socket.close();
                 }
             }
         } catch (IOException e) { e.printStackTrace(); }
@@ -103,6 +106,6 @@ public class GameServer {
     }
 
     public static void main(String[] args) {
-        new GameServer(12345).start();
+        new GameServer(6741).start();
     }
 }

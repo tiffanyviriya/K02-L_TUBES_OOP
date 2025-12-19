@@ -21,15 +21,11 @@ public class LobbyScene implements Scene {
     @Override
     public void update() {
         // Khusus Player 1 (Host), cek tombol 'P' untuk Start Game
-        if (gp.netClient.myPlayerId == 0) {
-            if (gp.keyH.interactPressed) { // Bisa pakai tombol P jika ditambah di KeyHandler, atau pakai C (Interact)
-                // Atau kita baca input raw jika mau spesifik tombol P,
-                // tapi biar aman pakai logika tombol yang ada saja atau tambah listener khusus.
-                // Untuk simpelnya, kita pakai tombol 'V' (Action) atau tambah key baru.
-                // Sesuai request: "Player1 menekan tombol 'P'" -> Kita asumsikan KeyHandler ditambah 'P' atau pakai tombol lain.
-                // *NOTE*: Di KeyHandler belum ada 'P'. Saya akan pakai Enter/Space via trigger manual atau key yang ada.
-                // Mari kita pakai 'V' (Action) sementara sebagai tombol START agar tidak ubah KeyHandler terlalu banyak,
-                // ATAU kita trigger via method public.
+        if (gp.netClient.isConnected && gp.netClient.myPlayerId == 0) {
+            if (gp.keyH.pPressed) {
+                tryStartGame();
+                // Delay kecil agar tidak spam
+                try { Thread.sleep(300); } catch (Exception e){}
             }
         }
     }
