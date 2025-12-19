@@ -19,6 +19,7 @@ public class WashingStation extends Tile implements Runnable {
 
     private int myCol, myRow;
 
+    // Pakai Container tumpukan (Stack) sesuai struktur aslimu
     private ItemContainer<Item> dirtyStack = new ItemContainer<>();
 
     private ScheduledFuture<?> washingTask;
@@ -26,7 +27,6 @@ public class WashingStation extends Tile implements Runnable {
     private volatile int currentProgress = 0;
     private final int MAX_PROGRESS = 100;
 
-    /* Konstruktor untuk inisialisasi stasiun pencucian pada posisi tertentu */
     public WashingStation(GamePanel gp, int col, int row) {
         super(gp);
         this.myCol = col;
@@ -36,7 +36,6 @@ public class WashingStation extends Tile implements Runnable {
         startWashingTask();
     }
 
-    /* Memuat gambar visual untuk stasiun pencucian */
     private void loadImage() {
         try {
             var is = getClass().getResourceAsStream("/stations/washingstations.png");
@@ -45,14 +44,12 @@ public class WashingStation extends Tile implements Runnable {
         } catch (IOException e) {  }
     }
 
-    /* Memulai thread terjadwal untuk menangani logika pencucian secara periodik */
     private void startWashingTask() {
         if (gp.globalExecutor != null && !gp.globalExecutor.isShutdown()) {
             washingTask = gp.globalExecutor.scheduleAtFixedRate(this, 0, 20, TimeUnit.MILLISECONDS);
         }
     }
 
-    /* Logika loop utama proses pencucian yang dijalankan oleh thread */
     @Override
     public void run() {
         try {
@@ -80,7 +77,6 @@ public class WashingStation extends Tile implements Runnable {
         }
     }
 
-    /* Memulai interaksi pencucian oleh pemain */
     private void startWashing(Entity player) {
         this.activePlayer = player;
         if (player instanceof Player) {
@@ -88,7 +84,6 @@ public class WashingStation extends Tile implements Runnable {
         }
     }
 
-    /* Menghentikan proses pencucian dan mengembalikan status pemain menjadi idle */
     private void stopWashing() {
         if (activePlayer != null) {
             if (activePlayer instanceof Player) {
@@ -98,7 +93,6 @@ public class WashingStation extends Tile implements Runnable {
         }
     }
 
-    /* Memeriksa apakah pemain berada dalam jarak interaksi yang valid */
     private boolean isPlayerClose(Entity p) {
         int tileX = myCol * gp.tileSize;
         int tileY = myRow * gp.tileSize;
@@ -108,14 +102,12 @@ public class WashingStation extends Tile implements Runnable {
         return distance < (gp.tileSize * 1.5);
     }
 
-    /* Membersihkan task thread saat objek stasiun dihapus */
     public void dispose() {
         if (washingTask != null) {
             washingTask.cancel(true);
         }
     }
 
-    /* Mencoba memindahkan piring yang sudah bersih ke counter sebelah */
     private synchronized void attemptTransferPlate() {
         WashingCounter targetCounter = findNeighborCounter();
 
@@ -133,7 +125,6 @@ public class WashingStation extends Tile implements Runnable {
         }
     }
 
-    /* Mencari objek WashingCounter yang bersebelahan dengan stasiun ini */
     private WashingCounter findNeighborCounter() {
         int targetCol = myCol - 1;
         int targetRow = myRow;
@@ -149,15 +140,36 @@ public class WashingStation extends Tile implements Runnable {
         return null;
     }
 
-    /* Menangani interaksi pemain: menaruh piring kotor atau memulai/menghentikan pencucian */
     @Override
     public void interact(Entity player) {
         if (player.inventory != null) {
-            dirtyStack.addItem(player.inventory);
-            player.inventory = null;
+            Item heldItem = player.inventory;
+
+            // Cek 1: Apakah item adalah Piring (Plate)?
+            if (heldItem instanceof Plate) {
+                Plate p = (Plate) heldItem;
+
+                // Cek 2: Apakah Piring tersebut KOSONG (tidak ada makanan)?
+                if (p.itemOnPlate.isEmpty()) {
+                    dirtyStack.addItem(heldItem); // Masukkan ke stack
+                    player.inventory = null;      // Kosongkan tangan
+                    System.out.println("Piring diletakkan di Washing Station.");
+                }
+                else {
+                    // ERROR: Piring ada isinya
+                    System.out.println("Gagal: Piring masih berisi makanan!");
+                    triggerErrorSound();
+                }
+            }
+            else {
+                // ERROR: Bukan Piring
+                System.out.println("Gagal: Hanya piring yang bisa masuk sini!");
+                triggerErrorSound();
+            }
             return;
         }
 
+        // Player mencuci tangan kosong
         if (!dirtyStack.isEmpty()) {
             if (activePlayer == null) {
                 startWashing(player);
@@ -168,7 +180,14 @@ public class WashingStation extends Tile implements Runnable {
         }
     }
 
-    /* Menggambar stasiun, tumpukan item, dan progress bar pencucian */
+    private void triggerErrorSound() {
+        try {
+            gp.soundM.playSE(6);
+        } catch (Exception e) {
+            System.out.println("Sound Error belum diset index-nya!");
+        }
+    }
+
     public void draw(Graphics2D g2, int x, int y) {
         if (image != null) g2.drawImage(image, x, y, gp.tileSize, gp.tileSize, null);
         else {
