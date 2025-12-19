@@ -5,76 +5,104 @@ import java.net.*;
 import java.util.*;
 
 public class GameServer {
-    private static final int PORT = 6741;
-    private static Set<PrintWriter> clientWriters = new HashSet<>();
-    private static int playerCount = 0;
+    private int port;
+    private List<ClientHandler> handlers = new ArrayList<>();
+    private int connectedPlayers = 0;
+    private ServerOrderManager orderManager;
+    private boolean gameStarted = false;
 
-    public static void main(String[] args) throws Exception {
-        System.out.println("=== GAME SERVER STARTED ON PORT " + PORT + " ===");
-        ServerSocket listener = new ServerSocket(PORT);
+    public GameServer(int port) {
+        this.port = port;
+        this.orderManager = new ServerOrderManager(this);
+    }
 
-        try {
-            while (playerCount < 2) {
-                System.out.println("Menunggu pemain...");
-                Socket socket = listener.accept();
+    public void start() {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Server started on port " + port);
 
-                System.out.println("Player " + (playerCount + 1) + " terhubung dari " + socket.getInetAddress());
+            // Thread khusus untuk mengupdate state server (seperti Order)
+            new Thread(() -> {
+                while (true) {
+                    if (gameStarted) {
+                        orderManager.update();
+                    }
+                    try { Thread.sleep(100); } catch (InterruptedException e) {}
+                }
+            }).start();
 
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                clientWriters.add(out);
-
-                // Kirim ID ke pemain (0 = Host/P1, 1 = Joiner/P2)
-                out.println("ASSIGN_ID:" + playerCount);
-
-                new Handler(socket).start();
-                playerCount++;
-
-                // Jika sudah 2 pemain, beri tahu host
-                if (playerCount == 2) {
-                    broadcast("LOBBY_FULL");
+            while (true) {
+                Socket socket = serverSocket.accept();
+                if (connectedPlayers < 2) {
+                    connectedPlayers++;
+                    ClientHandler handler = new ClientHandler(socket, connectedPlayers);
+                    handlers.add(handler);
+                    new Thread(handler).start();
+                    System.out.println("Player " + connectedPlayers + " connected.");
+                } else {
+                    socket.close(); // Tolak jika sudah penuh
                 }
             }
-            System.out.println("Lobby Penuh. Menunggu Host memulai game.");
-        } finally {
-            listener.close();
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    public void broadcast(String message) {
+        for (ClientHandler h : handlers) {
+            h.sendMessage(message);
         }
     }
 
-    // Broadcast pesan ke SEMUA client
-    private static void broadcast(String message) {
-        for (PrintWriter writer : clientWriters) {
-            writer.println(message);
-        }
+    // Reset lobby saat player keluar
+    public void resetLobby() {
+        this.gameStarted = false;
+        this.connectedPlayers = 0;
+        this.handlers.clear();
+        this.orderManager.reset();
+        System.out.println("Lobby has been reset.");
     }
 
-    private static class Handler extends Thread {
+    private class ClientHandler implements Runnable {
         private Socket socket;
+        private PrintWriter out;
         private BufferedReader in;
+        private int playerId;
 
-        public Handler(Socket socket) {
-            this.socket = socket;
+        public ClientHandler(Socket s, int id) {
+            this.socket = s;
+            this.playerId = id;
         }
 
+        @Override
         public void run() {
             try {
+                out = new PrintWriter(socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                out.println("ASSIGN_ID|" + playerId);
+
                 String input;
                 while ((input = in.readLine()) != null) {
-                    // Debug print (opsional)
-                    // System.out.println("Received: " + input);
-
-                    // Broadcast raw message ke semua client
-                    broadcast(input);
+                    if (input.equals("REQUEST_LEAVE_LOBBY")) {
+                        sendMessage("LEAVE_ACK");
+                        resetLobby();
+                        break;
+                    } else if (input.equals("START_GAME_SIGNAL")) {
+                        gameStarted = true;
+                        broadcast("START_GAME");
+                    } else {
+                        // Relay input seperti biasa
+                        broadcast(input);
+                    }
                 }
             } catch (IOException e) {
-                System.out.println("Pemain terputus: " + socket.getInetAddress());
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                System.out.println("Player disconnected.");
+                resetLobby();
             }
         }
+
+        public void sendMessage(String msg) { out.println(msg); }
+    }
+
+    public static void main(String[] args) {
+        new GameServer(12345).start();
     }
 }

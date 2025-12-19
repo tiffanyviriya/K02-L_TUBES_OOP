@@ -5,51 +5,59 @@ import main.util.GameState;
 import java.io.*;
 import java.net.*;
 
+/**
+ * NetworkClient yang mendukung koneksi default dan kustom.
+ * Sinkron dengan GamePanel dan OrderManager terbaru.
+ */
 public class NetworkClient implements Runnable {
     private GamePanel gp;
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
 
-    // Default localhost, bisa diganti IP LAN
+    // Nilai default jika tidak dipassing dari UI
     private String serverIp = "localhost";
     private int port = 6741;
 
-    public int myPlayerId = -1; // 0 = Player 1, 1 = Player 2
+    public int myPlayerId = -1;
     public boolean isConnected = false;
 
     public NetworkClient(GamePanel gp) {
         this.gp = gp;
     }
 
+    /**
+     * Method connect tanpa argumen (digunakan oleh DifficultyScene Anda).
+     * Menggunakan default localhost:12345
+     */
     public void connect() {
-        if (isConnected) return; // Jangan connect kalau sudah connect
-
-        try {
-            socket = new Socket(serverIp, port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-            isConnected = true;
-
-            System.out.println("Terhubung ke server!");
-            new Thread(this).start(); // Start listening thread
-
-        } catch (IOException e) {
-            System.out.println("Gagal connect ke server. Pastikan Server jalan.");
-            e.printStackTrace();
-        }
+        connect(this.serverIp, this.port);
     }
 
-    // Kirim input: INPUT:PLAYER_ID:KEY:PRESSED
-    public void sendInput(String key, boolean pressed) {
-        if (out != null) {
-            out.println("INPUT:" + myPlayerId + ":" + key + ":" + pressed);
-        }
-    }
+    /**
+     * Method connect dengan argumen jika ingin koneksi ke IP spesifik.
+     */
+    public void connect(String ip, int port) {
+        if (isConnected) return;
+        this.serverIp = ip;
+        this.port = port;
 
-    // Kirim perintah biasa
-    public void sendCommand(String cmd) {
-        if (out != null) out.println(cmd);
+        new Thread(() -> {
+            try {
+                socket = new Socket(serverIp, this.port);
+                out = new PrintWriter(socket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                isConnected = true;
+
+                System.out.println("Terhubung ke server " + serverIp + ":" + port);
+                run(); // Jalankan loop pendengar
+
+            } catch (IOException e) {
+                System.out.println("Gagal connect ke server. Pastikan GameServer sudah dijalankan.");
+                // e.printStackTrace();
+                isConnected = false;
+            }
+        }).start();
     }
 
     @Override
@@ -66,42 +74,82 @@ public class NetworkClient implements Runnable {
     }
 
     private void processMessage(String msg) {
-        // Parsing pesan sederhana format "HEADER:DATA:DATA"
-        String[] parts = msg.split(":");
+        // Format Pesan: COMMAND|DATA1|DATA2...
+        String[] parts = msg.split("\\|");
         String header = parts[0];
 
-        if (header.equals("ASSIGN_ID")) {
-            myPlayerId = Integer.parseInt(parts[1]);
-            System.out.println("ID Saya: " + myPlayerId);
-        }
-        else if (header.equals("LOBBY_FULL")) {
-            System.out.println("Pemain kedua masuk.");
-        }
-        else if (header.equals("START_GAME")) {
-            System.out.println("Game Dimulai oleh Host!");
-            gp.changeGameState(GameState.PLAYING);
-        }
-        else if (header.equals("INPUT")) {
-            // INPUT:SENDER_ID:KEY:PRESSED
-            int senderId = Integer.parseInt(parts[1]);
+        switch (header) {
+            case "ASSIGN_ID":
+                myPlayerId = Integer.parseInt(parts[1]);
+                System.out.println("ID Saya dari Server: " + myPlayerId);
+                break;
 
-            // Abaikan input dari diri sendiri (karena server broadcast ke semua)
-            if (senderId == myPlayerId) return;
+            case "START_GAME":
+                System.out.println("Server memulai permainan!");
+                gp.changeGameState(GameState.PLAYING);
+                break;
 
-            String key = parts[2];
-            boolean isPressed = Boolean.parseBoolean(parts[3]);
+            case "ORDER_SPAWN":
+                // Sinkronisasi Order: ORDER_SPAWN|RecipeName|Duration
+                if (gp.orderM != null) {
+                    gp.orderM.applyOrderSpawn(parts[1], Integer.parseInt(parts[2]));
+                }
+                break;
 
-            // Masukkan ke buffer remote
-            updateRemoteBuffer(key, isPressed);
+            case "ORDER_REMOVE":
+                // Sinkronisasi Penghapusan: ORDER_REMOVE|Index
+                if (gp.orderM != null) {
+                    gp.orderM.applyOrderRemove(Integer.parseInt(parts[1]));
+                }
+                break;
+
+            case "INPUT":
+                // Sinkronisasi Pergerakan: INPUT|SENDER_ID|KEY|PRESSED
+                int senderId = Integer.parseInt(parts[1]);
+                if (senderId != myPlayerId) {
+                    String key = parts[2];
+                    boolean isPressed = Boolean.parseBoolean(parts[3]);
+                    updateRemoteBuffer(key, isPressed);
+                }
+                break;
+
+            case "LEAVE_ACK":
+                System.out.println("Keluar dari Lobby dikonfirmasi server.");
+                gp.changeGameState(GameState.MAINMENU);
+                closeConnection();
+                break;
         }
     }
 
     private void updateRemoteBuffer(String key, boolean pressed) {
-        if (key.equals("W")) gp.remoteInputBuffer.up = pressed;
-        if (key.equals("S")) gp.remoteInputBuffer.down = pressed;
-        if (key.equals("A")) gp.remoteInputBuffer.left = pressed;
-        if (key.equals("D")) gp.remoteInputBuffer.right = pressed;
-        if (key.equals("V")) gp.remoteInputBuffer.action = pressed;
-        if (key.equals("C")) gp.remoteInputBuffer.interact = pressed;
+        if (gp.remoteInputBuffer == null) return;
+
+        switch (key) {
+            case "W": gp.remoteInputBuffer.up = pressed; break;
+            case "S": gp.remoteInputBuffer.down = pressed; break;
+            case "A": gp.remoteInputBuffer.left = pressed; break;
+            case "D": gp.remoteInputBuffer.right = pressed; break;
+            case "V": gp.remoteInputBuffer.action = pressed; break;
+            case "C": gp.remoteInputBuffer.interact = pressed; break;
+        }
+    }
+
+    public void sendInput(String key, boolean pressed) {
+        if (isConnected && out != null) {
+            out.println("INPUT|" + myPlayerId + "|" + key + "|" + pressed);
+        }
+    }
+
+    public void sendRequestLeave() {
+        if (isConnected && out != null) {
+            out.println("REQUEST_LEAVE_LOBBY");
+        }
+    }
+
+    public void closeConnection() {
+        try {
+            isConnected = false;
+            if (socket != null) socket.close();
+        } catch (IOException e) {}
     }
 }

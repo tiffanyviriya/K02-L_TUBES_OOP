@@ -12,6 +12,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Iterator;
+import java.util.List;
 
 /* Manajer untuk mengatur pesanan, resep, skor, dan kondisi permainan (nyawa/game over) */
 public class OrderManager {
@@ -56,6 +57,7 @@ public class OrderManager {
         sakanaMaki.addIngredient("fish", IngredientState.CHOPPED);
 
         Recipe fishcucumberRoll = new Recipe("Fish Cucumber Roll", 220, 60);
+        // SINKRONISASI RECIPE: Menggunakan addIngredient agar format string konsisten (name_STATE)
         fishcucumberRoll.addIngredient("nori", IngredientState.RAW);
         fishcucumberRoll.addIngredient("rice", IngredientState.COOKED);
         fishcucumberRoll.addIngredient("fish", IngredientState.CHOPPED);
@@ -74,15 +76,20 @@ public class OrderManager {
 
     /* Memperbarui logika pesanan, spawning, dan pengecekan kedaluwarsa */
     public void update() {
+        // SINKRONISASI SERVER: Spawning lokal dinonaktifkan agar tidak desinkron antar client
+        /*
         if (activeOrders.size() < MAX_ORDERS) {
             spawnOrder();
         }
+        */
 
         Iterator<Order> iterator = activeOrders.iterator();
         while (iterator.hasNext()) {
             Order order = iterator.next();
             order.update();
 
+            // SINKRONISASI SERVER: Pengecekan expired lokal tetap ada untuk visual,
+            // tapi idealnya server yang mengirim sinyal ORDER_REMOVE jika durasi habis.
             if (order.isExpired) {
                 score -= 50;
                 failedOrders++;
@@ -94,8 +101,36 @@ public class OrderManager {
         }
     }
 
-    /* Membuat pesanan baru secara acak jika slot tersedia dan timer terpenuhi */
+    // SINKRONISASI SERVER: Fungsi penambah order berdasarkan instruksi server
+    public void applyOrderSpawn(String recipeName, int duration) {
+        Recipe selectedRecipe = null;
+        for (Recipe r : levelRecipes) {
+            if (r.name.equalsIgnoreCase(recipeName)) {
+                selectedRecipe = r;
+                break;
+            }
+        }
+
+        if (selectedRecipe != null && activeOrders.size() < MAX_ORDERS) {
+            int newId = activeOrders.size();
+            Order newOrder = new Order(newId, selectedRecipe, gp.FPS);
+            // Anda bisa mengatur durasi spesifik dari server jika perlu:
+            // newOrder.timeLeft = duration;
+            activeOrders.add(newOrder);
+        }
+    }
+
+    // SINKRONISASI SERVER: Fungsi penghapus order berdasarkan index (instruksi server)
+    public void applyOrderRemove(int index) {
+        if (index >= 0 && index < activeOrders.size()) {
+            activeOrders.remove(index);
+            reindexOrders();
+        }
+    }
+
+    /* Spawning lokal dinonaktifkan untuk mode multiplayer */
     private void spawnOrder() {
+        // Method ini sekarang tidak dipanggil di update() jika multiplayer aktif
         if (levelRecipes.isEmpty()) return;
         spawnTimer++;
         if (spawnTimer < 200) return;
@@ -133,6 +168,8 @@ public class OrderManager {
                 activeOrders.remove(i);
                 reindexOrders();
                 matchFound = true;
+                // SINKRONISASI SERVER: Di sini client harus mengirim pesan ke server
+                // bahwa order index 'i' telah selesai agar server bisa membroadcast ke player lain.
                 break;
             }
         }
@@ -164,7 +201,7 @@ public class OrderManager {
     /* Mengecek kondisi kekalahan jika nyawa habis */
     private void checkGameOver() {
         if (lives <= 0) {
-            gp.gameState = GameState.RESULT;
+            gp.changeGameState(GameState.RESULT);
         }
     }
 
@@ -201,4 +238,6 @@ public class OrderManager {
             }
         }
     }
+
+    public List<Order> getActiveOrders() { return activeOrders; }
 }
