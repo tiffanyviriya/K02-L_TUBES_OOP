@@ -90,7 +90,6 @@ public class PlayerManager {
     }
 
     public void switchPlayer() {
-        // [MODIFIKASI] Matikan switch player jika online
         if (gp.netClient.isConnected) return;
 
         if (players.isEmpty()) return;
