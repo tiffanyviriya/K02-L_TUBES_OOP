@@ -22,18 +22,10 @@ public class NetworkClient implements Runnable {
         this.gp = gp;
     }
 
-    /**
-     * Connect default (Localhost:6741).
-     * Digunakan oleh DifficultyScene saat memulai mode multiplayer lokal.
-     */
     public void connect() {
         connect(this.serverIp, this.port);
     }
 
-    /**
-     * Connect dengan Parameter IP dan Port.
-     * Digunakan oleh Main.java saat menerima argumen dari terminal.
-     */
     public void connect(String ip, int port) {
         if (isConnected) return;
         this.serverIp = ip;

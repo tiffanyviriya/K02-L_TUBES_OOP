@@ -2,10 +2,6 @@ package net;
 
 import java.util.Random;
 
-/**
- * Kelas ini berjalan di sisi Server untuk mengatur siklus hidup pesanan.
- * Server yang menentukan kapan order muncul dan jenisnya apa.
- */
 public class ServerOrderManager {
     private GameServer server;
     private long lastSpawnTime;
@@ -29,7 +25,7 @@ public class ServerOrderManager {
     private void spawnNewOrder() {
         String recipe = availableRecipes[random.nextInt(availableRecipes.length)];
         int duration = 60; // 60 detik
-        // Broadcast ke semua client agar spawn order yang sama
+
         server.broadcast("ORDER_SPAWN|" + recipe + "|" + duration);
     }
 

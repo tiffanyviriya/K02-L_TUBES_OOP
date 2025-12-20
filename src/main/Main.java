@@ -11,7 +11,7 @@ public class Main {
         if (args.length > 0 && args[0].equalsIgnoreCase("server")) {
             System.out.println("=== MODE SERVER AKTIF ===");
             GameServer.main(args);
-            return; // STOP! Jangan lanjut ke kode Client di bawah
+            return;
         }
 
         // --- MODE CLIENT ---
